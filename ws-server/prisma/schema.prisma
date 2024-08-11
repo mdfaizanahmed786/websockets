@@ -12,3 +12,50 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id        String    @id @default(uuid())
+  name      String
+  username  String    @unique
+  password  String
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  chat      Chat[]    @relation("UserChats")
+  message   Message[]
+
+  @@index([name])
+}
+
+model Chat {
+  id           String    @id @default(uuid())
+  name         String?
+  messages     Message[] @relation("Messages")
+  isGroupChat  Boolean   @default(false)
+  isActiveChat Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  members      User[]    @relation("UserChats")
+  updatedAt    DateTime  @updatedAt
+}
+
+model Message {
+  id          String      @id @default(uuid())
+  message     String
+  messageType MessageType @default(TEXT)
+  sender      User        @relation(fields: [senderId], references: [id])
+  senderId    String
+  chat        Chat        @relation("Messages", fields: [chatId], references: [id], onDelete: Cascade)
+  chatId      String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([createdAt])
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  VIDEO
+  AUDIO
+  DOCUMENT
+}
