@@ -7,23 +7,23 @@ export async function createChat(req: Request, res: Response) {
     // @ts-ignore
     const user = req.user;
     if (!user) {
-        return res.status(401).json({ message: "Unauthorized" });
+        return res.status(401).json({ message: "Unauthorized", success: false });
     }
 
     const validateChatCreation = createChatValidation.safeParse(req.body);
 
     if (!validateChatCreation.success) {
-        return res.status(400).json({ message: validateChatCreation.error.errors });
+        return res.status(400).json({ message: validateChatCreation.error.errors, success: false });
     }
 
     const { name, users, isGroupChat } = validateChatCreation.data;
 
     if (isGroupChat && !name) {
-        return res.status(400).json({ message: "Name is required for group chat" });
+        return res.status(400).json({ message: "Name is required for group chat", success: false });
     }
 
     if (isGroupChat && users.length < 2) {
-        return res.status(400).json({ message: "Group chat must have at least 2 users" })
+        return res.status(400).json({ message: "Group chat must have at least 2 users", success: false });
     }
 
     try {
@@ -37,10 +37,10 @@ export async function createChat(req: Request, res: Response) {
             }
         });
 
-        return res.status(201).json({ message: "Chat created", chat });
+        return res.status(201).json({ message: "Chat created", chat, success: true });
 
     } catch (error) {
-        return res.status(500).json({ message: "Internal server error", });
+        return res.status(500).json({ message: "Internal server error", success: false });
 
     }
 
@@ -55,7 +55,7 @@ export async function getAllChats(req: Request, res: Response) {
     // @ts-ignore
     const user = req.user;
     if (!user) {
-        return res.status(401).json({ message: "Unauthorized" });
+        return res.status(401).json({ message: "Unauthorized", success: false });
     }
 
     try {
@@ -99,7 +99,7 @@ export async function getChatById(req: Request, res: Response) {
     // @ts-ignore
     const user = req.user;
     if (!user) {
-        return res.status(401).json({ message: "Unauthorized" });
+        return res.status(401).json({ message: "Unauthorized", success: false });
     }
 
     try {
@@ -139,7 +139,7 @@ export async function getChatById(req: Request, res: Response) {
         if (!chat) {
             return res.status(404).json({ message: "Chat not found", success: false });
         }
-        return res.status(200).json({ message: "Chat fetched", chat });
+        return res.status(200).json({ message: "Chat fetched", chat, success: true });
 
     } catch (error) {
         return res.status(500).json({ message: "Internal server error", success: false });

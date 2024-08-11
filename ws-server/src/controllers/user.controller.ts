@@ -8,7 +8,7 @@ export async function signUp(req: Request, res: Response) {
     const validateFields = signupUserValidation.safeParse(req.body);
 
     if (!validateFields.success) {
-        return res.status(400).json({ message: validateFields.error.errors });
+        return res.status(400).json({ message: validateFields.error.errors, success:false });
     }
 
     try {
@@ -25,18 +25,24 @@ export async function signUp(req: Request, res: Response) {
         });
 
         const token = jwt.sign({ id: newUser.id }, process.env.JWT_SECRET!);
+        res.cookie('token', token, {
+            maxAge: 24 * 60 * 60 * 1000,
+            httpOnly: true,
+            secure: false,
+            sameSite: "lax"
+          });
 
-        return res.status(201).json({ message: "Signup success!", token, user_id: newUser.id });
+        return res.status(201).json({ message: "Signup success!", token, user_id: newUser.id, success:true });
 
     } catch (error) {
-        return res.status(500).json({ message: "Internal server error", });
+        return res.status(500).json({ message: "Internal server error",success:false });
     }
 }
 export async function login(req: Request, res: Response) {
     const validateFields = loginUserValidation.safeParse(req.body);
 
     if (!validateFields.success) {
-        return res.status(400).json({ message: validateFields.error.errors });
+        return res.status(400).json({ message: validateFields.error.errors, success:false });
     }
 
     try {
@@ -49,22 +55,28 @@ export async function login(req: Request, res: Response) {
         });
 
         if (!user) {
-            return res.status(404).json({ message: "User not found" });
+            return res.status(404).json({ message: "User not found", success:false });
         }
 
         const comparePassword = await bcrypt.compare(password, user.password);
 
         if (!comparePassword) {
-            return res.status(401).json({ message: "Invalid credentials!" })
+            return res.status(401).json({ message: "Invalid credentials!", success:false })
         }
 
 
         const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET!);
+        res.cookie('token', token, {
+            maxAge: 24 * 60 * 60 * 1000,
+            httpOnly: true,
+            secure: false,
+            sameSite: "lax"
+          });
 
-        return res.status(200).json({ message: "Login success!", token, user_id: user.id });
+        return res.status(200).json({ message: "Login success!", token, user_id: user.id, success:true });
 
     } catch (error) {
-        return res.status(500).json({ message: "Internal server error", });
+        return res.status(500).json({ message: "Internal server error", success:false });
 
     }
 }
@@ -84,13 +96,13 @@ export async function getUser(req: Request, res: Response) {
         });
 
         if (!user) {
-            return res.status(404).json({ message: "User not found" });
+            return res.status(404).json({ message: "User not found", success:false });
         }
 
-        return res.status(200).json(user);
+        return res.status(200).json({ user, success:true });
 
     } catch (error) {
-        return res.status(500).json({ message: "Internal server error", });
+        return res.status(500).json({ message: "Internal server error", success:false });
 
     }
 }
