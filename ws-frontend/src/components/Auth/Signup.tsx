@@ -10,7 +10,48 @@ import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 
 import { Button } from "../ui/button";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useState } from "react";
 export default function Signup() {
+ const [submitting, setSubmitting] = useState(false); 
+  const navigate=useNavigate();
+  const handleSubmit =async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const username = form["username"].value;
+    const password = form["password"].value;
+    const name = form["Name"].value;
+   
+  
+      try {
+        setSubmitting(true);
+        const response=await axios.post("http://localhost:5001/api/v1/user/signup", {
+           username,
+           password,
+           name
+        }, {
+          withCredentials: true,
+        })
+
+        if(response.data.success){
+          toast.success(response.data.message);
+          setSubmitting(false);
+          navigate("/");
+          
+        }
+        
+        
+      } 
+     
+      catch (error:any) {
+        toast.error(error.response.data.message);
+        setSubmitting(false);
+      }
+
+
+  };
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Card className="w-full max-w-md">
@@ -18,10 +59,11 @@ export default function Signup() {
           <CardTitle className="text-3xl font-bold">Sign Up</CardTitle>
           <CardDescription>Create your account to get started.</CardDescription>
         </CardHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
         <CardContent className="space-y-4">
           <div className="grid gap-2">
-            <Label htmlFor="name">Name</Label>
-            <Input id="name" placeholder="Enter your name" required />
+            <Label htmlFor="Name">Name</Label>
+            <Input id="Name" placeholder="Enter your name" required />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="username">Username</Label>
@@ -38,10 +80,11 @@ export default function Signup() {
           </div>
         </CardContent>
         <CardFooter>
-          <Button type="submit" className="w-full">
-            Sign Up
+          <Button disabled={submitting} type="submit" className="w-full">
+            {submitting ? "Signing up..." : "Sign up"}
           </Button>
         </CardFooter>
+        </form>
       </Card>
     </div>
   );
