@@ -3,3 +3,5 @@ import { sendMessage } from "../controllers/message.controller";
 const router=express.Router();
 // @ts-ignore
 router.post("/send", sendMessage)
+
+export default router
