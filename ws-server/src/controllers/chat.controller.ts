@@ -34,7 +34,7 @@ export async function createChat(req: Request, res: Response) {
                 name,
                 isGroupChat,
                 members: {
-                    connect: users.map((userId: string) => ({ id: userId }))
+                    connect: [...users.map((userId: string) => ({ id: userId })), { id: user.id }]
                 }
             }
         });
@@ -52,6 +52,7 @@ export async function createChat(req: Request, res: Response) {
 export async function getAllChats(req: Request, res: Response) {
     // @ts-ignore
     const user = req.user;
+    console.log(user.id, "User id")
     if (!user) {
         return res.status(401).json({ message: "Unauthorized", success: false });
     }
@@ -72,7 +73,13 @@ export async function getAllChats(req: Request, res: Response) {
                 name: true,
                 isGroupChat: true,
                 createdAt: true,
-                members: false
+                members:{
+                    select:{
+                        name:true,
+                        username:true,
+                        id:true
+                    }
+                }
             },
             orderBy: {
                 createdAt: "desc"

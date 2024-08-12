@@ -51,13 +51,14 @@ function CreateChat() {
   };
 
 
-  const createChat=useCallback(async (isGroupChat:boolean, members:string|string[])=>{
+  const createChat=useCallback(async (isGroupChat:boolean, members:string|string[], groupName:string | null)=>{
     try {
       const response = await axios.post(
         "http://localhost:5001/api/v1/chat/create",
         {
           isGroupChat,
-          users:[members]
+          users:[members],
+          name:groupName
         },
         {
           withCredentials: true,
@@ -99,7 +100,7 @@ function CreateChat() {
                 />
 
                 <p>{user.name}</p>
-                <Button onClick={()=>createChat(false, user.id)} disabled={selectUser.length>=2}>Chat</Button>
+                <Button onClick={()=>createChat(false, user.id, null)} disabled={selectUser.length>=2}>Chat</Button>
               </div>
             ))}
             <div className="flex justify-center mt-5">

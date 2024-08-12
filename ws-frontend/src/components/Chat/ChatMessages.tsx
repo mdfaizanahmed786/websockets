@@ -2,10 +2,13 @@ import { useState } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import Messages from "./Messages";
+import { useChatStore } from "../../store/chatStore";
+import { validateUUID } from "./ChatContainer";
 
 function ChatMessages() {
   // all logic will happen here.....
   const [messages, setMessages] = useState([]);
+  const chatId=useChatStore(state=>state.chatId)
   return (
     <div className="flex flex-col gap-2 p-5 h-screen">
       <div className="flex-1 p-5 overflow-y-auto">
@@ -21,8 +24,8 @@ function ChatMessages() {
       </div>
 
       <div className="flex sticky w-full bottom-0 gap-2 items-center">
-        <Input placeholder="Type a message" />
-        <Button>Send</Button>
+        <Input disabled={!chatId || !validateUUID.test(chatId)}  placeholder="Type a message" />
+        {chatId  && !validateUUID.test(chatId) &&  <Button>Send</Button>}
       </div>
     </div>
   );

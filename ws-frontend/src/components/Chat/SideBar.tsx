@@ -1,5 +1,6 @@
 import axios from "axios";
 import { Button } from "../ui/button";
+import {useEffect} from 'react'
 import Chat from "./Chat";
 import CreateChat from "./CreateChat";
 import toast from "react-hot-toast";
@@ -26,6 +27,29 @@ function SideBar() {
       toast.error(error.response.data.message);
     }
   };
+
+  useEffect(()=>{
+      const fetchChats=async()=>{
+        try {
+          const response = await axios.get(
+            "http://localhost:5001/api/v1/chat",
+            {
+              withCredentials: true,
+            }
+          );
+    
+          if (response.data.success) {
+            console.log(response.data.chats);
+          }
+          
+        } catch (error) {
+            console.log(error)
+          
+        }
+      }
+
+      fetchChats()
+  },[])
   return (
     <div className="relative border-r-2 h-full border-gray-200 p-5">
       <div className="flex flex-col space-y-3 h-full">
