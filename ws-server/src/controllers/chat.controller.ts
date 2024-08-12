@@ -12,6 +12,8 @@ export async function createChat(req: Request, res: Response) {
 
     const validateChatCreation = createChatValidation.safeParse(req.body);
 
+    console.log(validateChatCreation, "Lets see this ")
+
     if (!validateChatCreation.success) {
         return res.status(400).json({ message: validateChatCreation.error.errors, success: false });
     }
@@ -40,6 +42,7 @@ export async function createChat(req: Request, res: Response) {
         return res.status(201).json({ message: "Chat created", chat, success: true });
 
     } catch (error) {
+        console.log(error)
         return res.status(500).json({ message: "Internal server error", success: false });
 
     }

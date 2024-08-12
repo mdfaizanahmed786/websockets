@@ -9,7 +9,7 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import toast from "react-hot-toast";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Checkbox } from "../ui/checkbox";
 import { useNavigate } from "react-router-dom";
 import CreateGroupChat from "./CreateGroupChat";
@@ -51,13 +51,13 @@ function CreateChat() {
   };
 
 
-  const createChat=async(isGroupChat:boolean, members:string|string[])=>{
+  const createChat=useCallback(async (isGroupChat:boolean, members:string|string[])=>{
     try {
       const response = await axios.post(
         "http://localhost:5001/api/v1/chat/create",
         {
           isGroupChat,
-          users:[...members]
+          users:[members]
         },
         {
           withCredentials: true,
@@ -73,7 +73,7 @@ function CreateChat() {
       toast.error(error.response.data.message);
     }
 
-  }
+  },[] )
 
   
 
@@ -105,7 +105,7 @@ function CreateChat() {
             <div className="flex justify-center mt-5">
               {selectUser.length >= 2 && <Button onClick={()=>setOpenGroupChatModal(true)}>Create Group Chat</Button>}
             </div>
-            <CreateGroupChat users={users} selectUser={selectUser} openGroupChatModal={openGroupChatModal}  setOpenGroupChatModal={setOpenGroupChatModal} />
+            <CreateGroupChat createChat={createChat} users={users} selectUser={selectUser} openGroupChatModal={openGroupChatModal}  setOpenGroupChatModal={setOpenGroupChatModal} />
           </DialogDescription>
         </DialogHeader>
       </DialogContent>
