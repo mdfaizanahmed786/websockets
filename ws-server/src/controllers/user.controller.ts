@@ -126,3 +126,9 @@ export async function getAllUsers(req:Request, res:Response){
 }
 
 
+export async function logout(req:Request, res:Response){
+    res.clearCookie('token');
+    return res.status(200).json({ message: "Logged out", success:true });
+}
+
+
