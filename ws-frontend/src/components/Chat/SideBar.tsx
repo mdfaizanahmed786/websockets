@@ -1,5 +1,5 @@
 import { Button } from "../ui/button";
-import Chats from "./Chats";
+import Chat from "./Chat";
 import CreateChat from "./CreateChat";
 
 function SideBar() {
@@ -11,26 +11,7 @@ function SideBar() {
         </div>
 
         <div className="flex-1 overflow-y-auto p-5">
-          <Chats />
-          <Chats />
-          <Chats />
-          <Chats />
-          <Chats />
-          <Chats />
-          <Chats />
-          <Chats />
-       
-          <Chats />
-          <Chats />
-          <Chats />
-          <Chats />
-          <Chats />
-          <Chats />
-          <Chats />
-          <Chats />
-          <Chats />
-          <Chats />
-          <Chats />
+          <Chat/>
           {/* Repeat <Chats /> as needed */}
         </div>
 
