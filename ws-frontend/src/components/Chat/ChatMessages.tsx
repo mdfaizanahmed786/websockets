@@ -25,7 +25,7 @@ function ChatMessages() {
 
       <div className="flex sticky w-full bottom-0 gap-2 items-center">
         <Input disabled={!chatId || !validateUUID.test(chatId)}  placeholder="Type a message" />
-        {chatId  && !validateUUID.test(chatId) &&  <Button>Send</Button>}
+        {chatId  && validateUUID.test(chatId) &&  <Button>Send</Button>}
       </div>
     </div>
   );

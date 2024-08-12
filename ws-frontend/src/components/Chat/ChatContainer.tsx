@@ -5,17 +5,18 @@ import { useChatStore } from "../../store/chatStore";
 import { useEffect } from "react";
 import axios from "axios";
 
-export const validateUUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+export const validateUUID =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 function ChatContainer() {
   const { chatId } = useParams();
   const setChatId = useChatStore((state) => state.setChatId);
-
+  const setChatName = useChatStore((state) => state.setChatName);
 
   useEffect(() => {
     if (!chatId || !validateUUID.test(chatId)) {
       return;
     }
-    const getChat=async()=>{
+    const getChat = async () => {
       try {
         const response = await axios.get(
           `http://localhost:5001/api/v1/chat/${chatId}`,
@@ -23,19 +24,27 @@ function ChatContainer() {
             withCredentials: true,
           }
         );
-  
+
         if (response.data.success) {
           setChatId(chatId);
+          if (response.data.chat.name && response.data.chat.isGroupChat) {
+            setChatName(response.data.chat.name);
+          } else {
+            const user = response.data.chat.members.find(
+              (user: any) => user.id !== response.data.user.id
+            );
+            setChatName(user.name);
+          }
         }
       } catch (error) {
         console.log(error);
       }
-    }
+    };
 
-    getChat()
+    getChat();
   }, [chatId]);
   // The chatId will go to global state manager....
-  console.log("I am rendering....");
+
   return (
     <div>
       <div className="flex overflow-y-hidden">

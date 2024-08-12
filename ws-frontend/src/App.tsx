@@ -1,11 +1,50 @@
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  useNavigate,
+} from "react-router-dom";
 import Login from "./components/Auth/Login";
 import Signup from "./components/Auth/Signup";
 import ChatContainer from "./components/Chat/ChatContainer";
-import { Toaster } from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
+import { useEffect } from "react";
+import axios from "axios";
+import { useUserStore } from "./store/userStore";
 function App() {
+  const navigate = useNavigate();
+  const { setUserId, setUserName } = useUserStore((state) => ({
+    setUserId: state.setUserId,
+    setUserName: state.setUserName,
+  }));
+
+  useEffect(() => {
+    const getUserInfo = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:5001/api/v1/user/me",
+          {
+            withCredentials: true,
+          }
+        );
+
+        console.log(response.data);
+        if (!response.data.success) {
+          toast.error(response.data.message);
+
+          navigate("/login");
+        }
+        setUserId(response.data.user.id);
+        setUserName(response.data.user.username);
+      } catch (error) {
+        toast.error(error.response.data.message);
+        navigate("/login");
+      }
+    };
+    getUserInfo();
+  }, []);
   return (
-    <Router>
+    <>
       <Toaster position="top-right" />
       <Routes>
         <Route path="/login" element={<Login />} />
@@ -13,7 +52,7 @@ function App() {
         <Route path="/chat/:chatId" element={<ChatContainer />} />
         <Route path="/" element={<ChatContainer />} />
       </Routes>
-    </Router>
+    </>
   );
 }
 

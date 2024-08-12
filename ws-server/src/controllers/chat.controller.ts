@@ -132,6 +132,7 @@ export async function getChatById(req: Request, res: Response) {
                 },
                 members: {
                     select: {
+                        id: true,
                         name: true,
                         username: true
 
