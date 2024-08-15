@@ -6,6 +6,7 @@ import { createChatValidation } from "../validation/chat.validation";
 export async function createChat(req: Request, res: Response) {
     // @ts-ignore
     const user = req.user;
+    console.log(req.body)
     if (!user) {
         return res.status(401).json({ message: "Unauthorized", success: false });
     }
@@ -20,9 +21,32 @@ export async function createChat(req: Request, res: Response) {
 
     const { name, users, isGroupChat } = validateChatCreation.data;
 
+
+    const findChat = await prisma.chat.findFirst({
+        where: {
+            isGroupChat,
+            members: {
+                every: {
+                    id: {
+                        in: [...users, user.id]
+                    }
+                }
+            }
+        },
+
+    });
+
+    if (findChat) {
+        return res.status(400).json({ message: "Chat already exists", success: false });
+    }
+
+
+
     if (isGroupChat && !name) {
         return res.status(400).json({ message: "Name is required for group chat", success: false });
     }
+
+
 
     if (isGroupChat && users.length < 2) {
         return res.status(400).json({ message: "Group chat must have at least 2 users", success: false });

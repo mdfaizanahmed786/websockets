@@ -17,7 +17,7 @@ chatName
         <div className="flex items-center space-x-3">
           <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
           <div>
-            <h1 className="">{chatName}</h1>
+            <h1 className="text-xs">{chatName}</h1>
             <p className="text-sm text-gray-500">Last message</p>
           </div>
         </div>

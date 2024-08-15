@@ -18,10 +18,9 @@ function ChatContainer() {
   const { chatId } = useParams();
   const setChatId = useChatStore((state) => state.setChatId);
   const setChatName = useChatStore((state) => state.setChatName);
-  const userId=useUserStore(state=>state.userId)
+  const userId = useUserStore((state) => state.userId);
 
-  const [messages, setMessages]=useState([])
-
+  const [messages, setMessages] = useState([]);
 
   useEffect(() => {
     if (!chatId) {
@@ -39,19 +38,14 @@ function ChatContainer() {
 
         if (response.data.success) {
           setChatId(chatId);
-          setMessages(response.data.chat.messages)
+          setMessages(response.data.chat.messages);
           if (response.data.chat.name && response.data.chat.isGroupChat) {
             setChatName(response.data.chat.name);
           } else {
-           
             const user = response.data.chat.members.find(
               (user: User) => user.id !== userId
             );
 
-
-
-
-          
             setChatName(user.name);
           }
         }
@@ -71,7 +65,7 @@ function ChatContainer() {
           <SideBar />
         </div>
         <div className="flex-[0.8] w-full h-full">
-          <ChatMessages messages={messages}/>
+          <ChatMessages messages={messages} />
         </div>
       </div>
     </div>

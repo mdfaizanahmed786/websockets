@@ -7,7 +7,7 @@ export const chatMessageValidation=z.object({
 
 
 export const createChatValidation=z.object({
-    name: z.string().min(3).max(255).trim().optional(),
+    name: z.nullable(z.string().min(1).max(255).trim()),
     users: z.array(z.string()).min(1),
     isGroupChat: z.boolean()
 })

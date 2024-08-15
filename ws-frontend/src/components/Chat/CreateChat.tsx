@@ -9,10 +9,11 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import toast from "react-hot-toast";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Checkbox } from "../ui/checkbox";
 import { useNavigate } from "react-router-dom";
 import CreateGroupChat from "./CreateGroupChat";
+import { useUserStore } from "../../store/userStore";
 export type User = {
   id: string;
   name: string;
@@ -22,9 +23,12 @@ function CreateChat() {
   const [users, setUsers] = useState([]);
   const [openGroupChatModal, setOpenGroupChatModal] = useState(false);  
   const [selectUser, setSelectUsers] = useState<string[]>([]);
+  const userId=useUserStore(state=>state.userId)
   const navigate=useNavigate();
+  const [singleChat, setSingleChatModal]=useState(false) 
 
   const fetchUsers = async () => {
+    setSingleChatModal(true)
     try {
       const response = await axios.get(
         "http://localhost:5001/api/v1/user/all",
@@ -57,7 +61,7 @@ function CreateChat() {
         "http://localhost:5001/api/v1/chat/create",
         {
           isGroupChat,
-          users:[members],
+          users:!isGroupChat ? [members] : members,
           name:groupName
         },
         {
@@ -68,18 +72,26 @@ function CreateChat() {
       if (response.data.success) {
         toast.success(response.data.message);
         navigate(`/chat/${response.data.chat.id}`);
+        setOpenGroupChatModal(false)
+        setSingleChatModal(false)
+        setSelectUsers([])  
 
       }
+      else{
+        toast.error(response.data.message)
+      }
     } catch (error: any) {
-      toast.error(error.response.data.message);
+      console.log(error)
+      // toast.error(error.response.data.message);
     }
 
   },[])
 
-  
+ 
+  const filterUsers=useMemo(()=>users.filter((user:User)=>user.id!==userId), [users.length, userId])
 
   return (
-    <Dialog>
+    <Dialog open={singleChat}>
       <DialogTrigger>
         <Button onClick={fetchUsers} className="w-full">
           Create Chat
@@ -89,7 +101,7 @@ function CreateChat() {
         <DialogHeader>
           <DialogTitle>Select a user to chat with!</DialogTitle>
           <DialogDescription>
-            {users.map((user: User) => (
+            {filterUsers.map((user: User) => (
               <div
                 key={user.id}
                 className="flex items-center justify-between p-2 border-b"
@@ -106,7 +118,7 @@ function CreateChat() {
             <div className="flex justify-center mt-5">
               {selectUser.length >= 2 && <Button onClick={()=>setOpenGroupChatModal(true)}>Create Group Chat</Button>}
             </div>
-            <CreateGroupChat createChat={createChat} users={users} selectUser={selectUser} openGroupChatModal={openGroupChatModal}  setOpenGroupChatModal={setOpenGroupChatModal} />
+            <CreateGroupChat createChat={createChat} users={filterUsers} selectUser={selectUser} openGroupChatModal={openGroupChatModal}  setOpenGroupChatModal={setOpenGroupChatModal} />
           </DialogDescription>
         </DialogHeader>
       </DialogContent>

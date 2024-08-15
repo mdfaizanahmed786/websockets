@@ -81,7 +81,7 @@ function SideBar() {
           <CreateChat />
         </div>
 
-        <div className="flex-1 flex flex-col gap-5 overflow-y-auto ">
+        <div className="flex-1 flex flex-col gap-2 overflow-y-auto ">
           {allChats.map((chat: Chat) => {
             const chatName = chat.isGroupChat
               ? chat.name
