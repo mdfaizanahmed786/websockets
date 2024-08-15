@@ -12,7 +12,7 @@ chatName
 }: ChatProps) {
   const navigate = useNavigate();
   return (
-    <div onClick={()=>navigate(`/chat/${id}`)} className="cursor-pointer">
+    <div onClick={()=>navigate(`/chat/${id}`)} className="cursor-pointer hover:bg-slate-100 hover:rounded-md transition-bg">
       <div className="flex items-center justify-between p-3">
         <div className="flex items-center space-x-3">
           <div className="w-12 h-12 bg-gray-200 rounded-full"></div>

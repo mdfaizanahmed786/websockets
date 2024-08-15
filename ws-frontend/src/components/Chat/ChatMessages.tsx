@@ -63,7 +63,7 @@ function ChatMessages({
           <div className="flex flex-col justify-center items-center h-full gap-2">
             {chatId && validateUUID.test(chatId) ? (
               <p className="text-2xl text-gray-500 text-center">
-                 This is the beginning of your chat with {chatName}
+                 This is the beginning of your chat with <span className="font-semibold">{chatName}</span>
               </p>
             ) : (
               <>

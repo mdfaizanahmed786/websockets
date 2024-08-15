@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { useUserStore } from "../../store/userStore";
 import { useChatStore } from "../../store/chatStore";
+import { MessageCircleMore } from "lucide-react";
 
 type Member = {
   name: string;
@@ -75,8 +76,12 @@ function SideBar() {
     fetchChats();
   }, []);
   return (
-    <div className="relative border-r-2 h-full border-gray-200 p-5">
+    <div className="relative border-r-2 h-full border-gray-200 p-4">
       <div className="flex flex-col space-y-3 h-full">
+        <div onClick={()=>navigate('/')} className="flex cursor-pointer items-center gap-2">
+        <MessageCircleMore />
+          <h1 className="text-2xl text-center font-semibold">Chat App</h1>
+        </div>
         <div className="flex flex-col gap-2">
           <CreateChat />
         </div>
