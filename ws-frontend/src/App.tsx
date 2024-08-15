@@ -27,7 +27,6 @@ function App() {
           }
         );
 
-        console.log(response.data);
         if (!response.data.success) {
           toast.error(response.data.message);
 

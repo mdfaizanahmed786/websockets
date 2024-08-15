@@ -23,6 +23,8 @@ export async function sendMessage(req: Request, res: Response) {
     try {
         const { message } = validateMessage.data;
         // @ts-ignore
+        console.log(req.user, "User")
+        // @ts-ignore
         const user = req.user;
         const newMessage = await prisma.message.create({
             data: {
@@ -35,6 +37,7 @@ export async function sendMessage(req: Request, res: Response) {
         return res.status(201).json({ message: "Message sent!", newMessage, success: true });
 
     } catch (error) {
+        console.log(error)
         return res.status(500).json({ message: "Internal server error",success:false });
     }
 }
