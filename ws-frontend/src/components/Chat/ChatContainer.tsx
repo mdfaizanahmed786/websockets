@@ -4,6 +4,8 @@ import SideBar from "./SideBar";
 import { useChatStore } from "../../store/chatStore";
 import { useEffect } from "react";
 import axios from "axios";
+import { User } from "./CreateChat";
+import { useUserStore } from "../../store/userStore";
 
 export const validateUUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -11,9 +13,11 @@ function ChatContainer() {
   const { chatId } = useParams();
   const setChatId = useChatStore((state) => state.setChatId);
   const setChatName = useChatStore((state) => state.setChatName);
+  const userId=useUserStore(state=>state.userId)
 
   useEffect(() => {
-    if (!chatId || !validateUUID.test(chatId)) {
+    if (!chatId) {
+      setChatId("");
       return;
     }
     const getChat = async () => {
@@ -30,9 +34,13 @@ function ChatContainer() {
           if (response.data.chat.name && response.data.chat.isGroupChat) {
             setChatName(response.data.chat.name);
           } else {
+           
             const user = response.data.chat.members.find(
-              (user: any) => user.id !== response.data.user.id
+              (user: User) => user.id !== userId
             );
+
+
+          
             setChatName(user.name);
           }
         }
@@ -42,7 +50,7 @@ function ChatContainer() {
     };
 
     getChat();
-  }, [chatId]);
+  }, [chatId, userId]);
   // The chatId will go to global state manager....
 
   return (

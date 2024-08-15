@@ -73,11 +73,12 @@ export async function getAllChats(req: Request, res: Response) {
                 name: true,
                 isGroupChat: true,
                 createdAt: true,
-                members:{
-                    select:{
-                        name:true,
-                        username:true,
-                        id:true
+                id: true,
+                members: {
+                    select: {
+                        name: true,
+                        username: true,
+                        id: true
                     }
                 }
             },
