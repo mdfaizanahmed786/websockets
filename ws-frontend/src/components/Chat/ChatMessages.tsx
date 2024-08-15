@@ -3,19 +3,23 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import Messages from "./Messages";
 import { useChatStore } from "../../store/chatStore";
-import { validateUUID } from "./ChatContainer";
+import { Message, validateUUID } from "./ChatContainer";
 import toast from "react-hot-toast";
 import axios from "axios";
 
-function ChatMessages() {
+function ChatMessages({
+  messages
+}:{
+  messages:Message[]
+}) {
   // all logic will happen here.....
-  const [messages, setMessages] = useState([]);
+ 
   const chatId = useChatStore((state) => state.chatId);
   const [message, setMessage] = useState("");
   const chatName = useChatStore((state) => state.chatName);
   const [sending, setSending] = useState(false);
 
-  const sendMessage = async () => {
+  const sendMessage = async () => { 
     // send message to the server...
     if (!chatId || !validateUUID.test(chatId)) {
       toast.error("Invalid Request");
@@ -73,7 +77,11 @@ function ChatMessages() {
             )}
           </div>
         ) : (
-          <Messages />
+          <div className="flex flex-col gap-4">
+          {messages.map((message)=>(
+            <Messages key={message.id} message={message} />
+          ))}
+          </div>
         )}
       </div>
 

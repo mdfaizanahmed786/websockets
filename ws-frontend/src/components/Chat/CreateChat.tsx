@@ -74,7 +74,7 @@ function CreateChat() {
       toast.error(error.response.data.message);
     }
 
-  },[] )
+  },[])
 
   
 

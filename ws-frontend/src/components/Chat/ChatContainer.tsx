@@ -2,11 +2,16 @@ import { useParams } from "react-router-dom";
 import ChatMessages from "./ChatMessages";
 import SideBar from "./SideBar";
 import { useChatStore } from "../../store/chatStore";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { User } from "./CreateChat";
 import { useUserStore } from "../../store/userStore";
-
+export interface Message {
+  id: string;
+  message: string;
+  createdAt: string;
+  sender: User;
+}
 export const validateUUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 function ChatContainer() {
@@ -14,6 +19,9 @@ function ChatContainer() {
   const setChatId = useChatStore((state) => state.setChatId);
   const setChatName = useChatStore((state) => state.setChatName);
   const userId=useUserStore(state=>state.userId)
+
+  const [messages, setMessages]=useState([])
+
 
   useEffect(() => {
     if (!chatId) {
@@ -31,6 +39,7 @@ function ChatContainer() {
 
         if (response.data.success) {
           setChatId(chatId);
+          setMessages(response.data.chat.messages)
           if (response.data.chat.name && response.data.chat.isGroupChat) {
             setChatName(response.data.chat.name);
           } else {
@@ -38,6 +47,8 @@ function ChatContainer() {
             const user = response.data.chat.members.find(
               (user: User) => user.id !== userId
             );
+
+
 
 
           
@@ -60,7 +71,7 @@ function ChatContainer() {
           <SideBar />
         </div>
         <div className="flex-[0.8] w-full h-full">
-          <ChatMessages />
+          <ChatMessages messages={messages}/>
         </div>
       </div>
     </div>
