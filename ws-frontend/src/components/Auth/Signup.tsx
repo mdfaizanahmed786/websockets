@@ -1,22 +1,21 @@
 import {
   Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
 } from "../ui/card";
-import { Label } from "../ui/label";
 import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 
-import { Button } from "../ui/button";
-import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useState } from "react";
+import toast from "react-hot-toast";
+import { Button } from "../ui/button";
 export default function Signup() {
  const [submitting, setSubmitting] = useState(false); 
-  const navigate=useNavigate();
+
   const handleSubmit =async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -38,7 +37,7 @@ export default function Signup() {
         if(response.data.success){
           toast.success(response.data.message);
           setSubmitting(false);
-          navigate("/");
+          window.location.href = "/";
           
         }
         

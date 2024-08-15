@@ -6,6 +6,7 @@ import CreateChat from "./CreateChat";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { useUserStore } from "../../store/userStore";
+import { useChatStore } from "../../store/chatStore";
 
 type Member = {
   name: string;
@@ -23,7 +24,15 @@ type Chat = {
 
 function SideBar() {
   const navigate = useNavigate();
-  const userId = useUserStore((state) => state.userId);
+  const {setUserId, userId} = useUserStore((state) => {
+    return {
+      setUserId: state.setUserId,
+      userId: state.userId,
+    };
+  });
+
+  const setChatId=useChatStore(state=>state.setChatId)  
+
   const [allChats, setAllChats] = useState([]);
 
   const logout = async () => {
@@ -38,7 +47,10 @@ function SideBar() {
 
       if (response.data.success) {
         toast.success(response.data.message);
-        navigate("/login");
+         setUserId("");
+          setChatId("");
+
+       navigate("/login");
       }
     } catch (error) {
       toast.error(error.response.data.message);

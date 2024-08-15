@@ -41,7 +41,7 @@ export default function Login() {
         setSubmitting(false);
         toast.success(response.data.message);
 
-        navigate("/");
+        window.location.href = "/";
       }
     } catch (error: any) {
       toast.error(error.response.data.message);
