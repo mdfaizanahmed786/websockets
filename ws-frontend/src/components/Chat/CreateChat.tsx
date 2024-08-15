@@ -121,6 +121,10 @@ function CreateChat() {
             <CreateGroupChat createChat={createChat} users={filterUsers} selectUser={selectUser} openGroupChatModal={openGroupChatModal}  setOpenGroupChatModal={setOpenGroupChatModal} />
           </DialogDescription>
         </DialogHeader>
+      {!(selectUser.length >= 2) &&  <div className="mt-1 text-center">
+
+<Button onClick={()=>setSingleChatModal(false)} variant="destructive">Cancel</Button>
+        </div>}
       </DialogContent>
     </Dialog>
   );
