@@ -19,8 +19,9 @@ function ChatMessages({
   const chatName = useChatStore((state) => state.chatName);
   const [sending, setSending] = useState(false);
 
-  const sendMessage = async () => { 
+  const sendMessage = async (e:React.FormEvent) => { 
     // send message to the server...
+    e.preventDefault();
     if (!chatId || !validateUUID.test(chatId)) {
       toast.error("Invalid Request");
       return;
@@ -86,15 +87,18 @@ function ChatMessages({
       </div>
 
       <div className="flex sticky w-full p-5 bottom-0 gap-2 items-center">
+        <form onSubmit={sendMessage} className="flex gap-2 w-full">
         <Input
           value={message}
+          className="flex-1"
           onChange={(e) => setMessage(e.target.value)}
           disabled={!chatId || !validateUUID.test(chatId)}
           placeholder="Type a message"
         />
         {chatId && validateUUID.test(chatId) && (
-          <Button onClick={sendMessage} disabled={sending || !message}>{sending ? "...." : "Send"}</Button>
+          <Button type="submit" disabled={sending || !message}>{sending ? "...." : "Send"}</Button>
         )}
+        </form>
       </div>
     </div>
   );

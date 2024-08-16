@@ -38,6 +38,56 @@ export async function sendMessage(req: Request, res: Response) {
 
     } catch (error) {
         console.log(error)
-        return res.status(500).json({ message: "Internal server error",success:false });
+        return res.status(500).json({ message: "Internal server error", success: false });
     }
+
+
 }
+
+export async function getChatMessages(req: Request, res: Response) {
+    const { chatId } = req.params;
+
+    if (!chatId) {
+        return res.status(400).json({ message: "Chat ID is required", success: false });
+    }
+
+    try {
+        const chatExists = await prisma.chat.findFirst({
+            where: {
+                id: chatId
+            }
+        });
+
+        if (!chatExists) {
+            return res.status(404).json({
+                message: "Chat not found", success: false
+            });
+        }
+
+        const chatMessages = await prisma.message.findMany({
+            where: {
+                chatId
+            },
+            include: {
+                sender: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                }
+            }
+        });
+
+        return res.status(200).json({ messages: chatMessages, success: true });
+
+    } catch (error) {
+        console.log(error)
+
+        return res.status(500).json({ message: "Internal server error", success: false });
+    }
+
+
+
+
+}
+

@@ -78,7 +78,7 @@ function SideBar() {
   return (
     <div className="relative border-r-2 h-full border-gray-200 p-4">
       <div className="flex flex-col space-y-3 h-full">
-        <div onClick={()=>navigate('/')} className="flex cursor-pointer items-center gap-2">
+        <div onClick={()=>window.location.href="/"} className="flex cursor-pointer items-center gap-2">
         <MessageCircleMore />
           <h1 className="text-2xl text-center font-semibold">Chat App</h1>
         </div>
