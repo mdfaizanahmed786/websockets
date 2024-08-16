@@ -24,12 +24,22 @@ app.use("/api/v1/user", userRouter)
 app.use("/api/v1/message", messageRouter)
 
 
-const server = app.listen(5001, ()=>{
+const server = app.listen(5001, () => {
     console.log("Server is running on port 5001")
 })
 
-
 const wss = new WebSocketServer({ server })
+
+wss.on("connection", (ws) => {
+    console.log("connection done successfully..")
+    ws.on("error", () => {
+        console.log("Got some error")
+    })
+
+    ws.on("message", (data) => {
+        console.log(JSON.parse(data.toString()))
+    })
+})
 
 
 
