@@ -7,15 +7,16 @@ import { Message, validateUUID } from "./ChatContainer";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { useWSStore } from "../../store/wsStore";
+import { useUserStore } from "../../store/userStore";
 
-function ChatMessages({ messages }: { messages: Message[] }) {
+function ChatMessages({ messages, setMessages }: { messages: Message[], setMessages: React.Dispatch<React.SetStateAction<Message[]>> }) {
   // all logic will happen here.....
-
+console.log(messages[0])
   const chatId = useChatStore((state) => state.chatId);
   const [message, setMessage] = useState("");
   const chatName = useChatStore((state) => state.chatName);
   const [sending, setSending] = useState(false); 
-
+const {name, userId}=useUserStore(state=>({name:state.name, userId:state.userId}))
   const { socket, setSocket } = useWSStore((state) => {
     return {
       socket: state.socket,
@@ -24,6 +25,7 @@ function ChatMessages({ messages }: { messages: Message[] }) {
   });
 
   useEffect(() => {
+    if(!chatId) return;
     const newSocket = new WebSocket("ws://localhost:5001");
 
     newSocket.onopen = () => {
@@ -31,14 +33,23 @@ function ChatMessages({ messages }: { messages: Message[] }) {
       setSocket(newSocket);
     };
 
+    newSocket.onmessage=(message)=>{
+      const data=JSON.parse(message.data);
+    console.log(data, "Data")
+      setMessages((prev)=>[...prev, data.data])
+
+      // console.log("Message", data);  
+    }
+
     newSocket.onerror = (error) => {
+      
       console.log("Error", error);
     };
 
     return () => {
       newSocket.close();
     };
-  }, []);
+  }, [chatId]);
 
   const sendMessage = async (e: React.FormEvent) => {
     // send message to the server...
@@ -67,6 +78,10 @@ function ChatMessages({ messages }: { messages: Message[] }) {
             data: {
               message,
               chatId,
+              sender:{
+                id:userId,
+                name:name
+              }
             },
           })
         );

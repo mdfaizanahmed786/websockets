@@ -31,6 +31,11 @@ export async function sendMessage(req: Request, res: Response) {
                 message,
                 chatId,
                 senderId: user.id
+            },
+            select:{
+                id:true,
+                message:true,
+                
             }
         });
 

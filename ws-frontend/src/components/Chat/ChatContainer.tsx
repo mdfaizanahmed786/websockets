@@ -65,7 +65,7 @@ function ChatContainer() {
           <SideBar />
         </div>
         <div className="flex-[0.8] w-full h-full">
-          <ChatMessages messages={messages} />
+          <ChatMessages messages={messages}  setMessages={setMessages} />
         </div>
       </div>
     </div>

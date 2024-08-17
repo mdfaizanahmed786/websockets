@@ -12,9 +12,10 @@ import axios from "axios";
 import { useUserStore } from "./store/userStore";
 function App() {
   const navigate = useNavigate();
-  const { setUserId, setUserName } = useUserStore((state) => ({
+  const { setUserId, setUserName, setName } = useUserStore((state) => ({
     setUserId: state.setUserId,
     setUserName: state.setUserName,
+    setName:state.setName
   }));
 
   useEffect(() => {
@@ -34,6 +35,8 @@ function App() {
         }
         setUserId(response.data.user.id);
         setUserName(response.data.user.username);
+        setName(response.data.user.name);
+        
       } catch (error) {
         toast.error(error.response.data.message);
         navigate("/login");

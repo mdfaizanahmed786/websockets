@@ -8,6 +8,8 @@ import chatRouter from "./routes/chat.route"
 import userRouter from "./routes/user.route"
 import messageRouter from "./routes/message.route"
 import cookieParser from "cookie-parser"
+import { formatMessage, handleSend } from "./utils/handlers/sendMessage"
+import { setErrorMap } from "zod"
 
 const app = express()
 app.use(cors({
@@ -24,6 +26,9 @@ app.use("/api/v1/user", userRouter)
 app.use("/api/v1/message", messageRouter)
 
 
+const clients = new Map();
+
+
 const server = app.listen(5001, () => {
     console.log("Server is running on port 5001")
 })
@@ -32,12 +37,34 @@ const wss = new WebSocketServer({ server })
 
 wss.on("connection", (ws) => {
     console.log("connection done successfully..")
-    ws.on("error", () => {
-        console.log("Got some error")
-    })
+
 
     ws.on("message", (data) => {
-        console.log(JSON.parse(data.toString()))
+        const message = JSON.parse(data.toString());
+        console.log(message, "Message")
+        try {
+
+            if (message.type === "message") {
+                const messagePayload = formatMessage(message.data)
+                clients.set(ws, messagePayload.chatId)
+                handleSend(wss, clients, messagePayload)
+            }
+
+        } catch (error) {
+
+            console.log(error)
+
+        }
+
+
+    })
+
+    ws.on("close", () => {
+        clients.delete(ws)
+    })
+
+    ws.on("error", () => {
+        console.log("Got some error")
     })
 })
 
