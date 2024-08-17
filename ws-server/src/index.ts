@@ -2,7 +2,7 @@ import express from "express"
 import cors from "cors"
 import helmet from "helmet"
 import morgan from "morgan"
-import { WebSocketServer } from "ws"
+import { WebSocket, WebSocketServer } from "ws"
 require("dotenv").config()
 import chatRouter from "./routes/chat.route"
 import userRouter from "./routes/user.route"
@@ -41,14 +41,49 @@ wss.on("connection", (ws) => {
 
     ws.on("message", (data) => {
         const message = JSON.parse(data.toString());
-        console.log(message, "Message")
         try {
+
+            if (message.type === "join") {
+                // Associate this WebSocket connection with the chatId
+                clients.set(ws, message.data.chatId);
+                console.log(`Client joined chat: ${message.data.chatId}`);
+            }
 
             if (message.type === "message") {
                 const messagePayload = formatMessage(message.data)
-                clients.set(ws, messagePayload.chatId)
                 handleSend(wss, clients, messagePayload)
             }
+
+            if (message.type === "typing") {
+                const typingPayload = message.data;
+                console.log(typingPayload, "Typing payload..")
+                wss.clients.forEach((client: WebSocket) => {
+                    if (client!==ws && client.readyState === WebSocket.OPEN && clients.get(client) === typingPayload.chatId) {
+                        client.send(JSON.stringify({
+                            type: "typing",
+                            data: {
+                                name: typingPayload.name
+                            }
+                        }))
+                    }
+                })
+            }
+
+            if(message.type==="stop_typing"){
+                const typingPayload = message.data;
+                wss.clients.forEach((client: WebSocket) => {
+                    if (client!==ws && client.readyState === WebSocket.OPEN && clients.get(client) === typingPayload.chatId) {
+                        client.send(JSON.stringify({
+                            type: "stop_typing",
+                            data: {
+                                name: typingPayload.name
+                            }
+                        }))
+                    }
+                })
+            }
+
+
 
         } catch (error) {
 

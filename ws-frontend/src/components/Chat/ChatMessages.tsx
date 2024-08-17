@@ -1,6 +1,5 @@
-import { useEffect, useReducer, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "../ui/button";
-import { Input } from "../ui/input";
 import Messages from "./Messages";
 import { useChatStore } from "../../store/chatStore";
 import { Message, validateUUID } from "./ChatContainer";
@@ -8,17 +7,27 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import { useWSStore } from "../../store/wsStore";
 import { useUserStore } from "../../store/userStore";
+import TypingInput from "./TypingInput";
 
-function ChatMessages({ messages, setMessages }: { messages: Message[], setMessages: React.Dispatch<React.SetStateAction<Message[]>> }) {
+function ChatMessages({
+  messages,
+  setMessages,
+}: {
+  messages: Message[];
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+}) {
   const chatId = useChatStore((state) => state.chatId);
   const [message, setMessage] = useState("");
   const chatName = useChatStore((state) => state.chatName);
-  const [sending, setSending] = useState(false); 
-  const [typing,  setTyping]=useState(false)
+  const [sending, setSending] = useState(false);
+  const [typing, setTyping] = useState("");
 
-  const bottomRef=useRef<HTMLDivElement>(null)
+  const bottomRef = useRef<HTMLDivElement>(null);
 
-const {name, userId}=useUserStore(state=>({name:state.name, userId:state.userId}))
+  const { name, userId } = useUserStore((state) => ({
+    name: state.name,
+    userId: state.userId,
+  }));
   const { socket, setSocket } = useWSStore((state) => {
     return {
       socket: state.socket,
@@ -27,25 +36,36 @@ const {name, userId}=useUserStore(state=>({name:state.name, userId:state.userId}
   });
 
   useEffect(() => {
-    if(!chatId) return;
+    if (!chatId) return;
     const newSocket = new WebSocket("ws://localhost:5001");
 
     newSocket.onopen = () => {
       console.log("Connected to the server");
       setSocket(newSocket);
+      newSocket.send(JSON.stringify({
+        type: "join",
+        data: { chatId }
+      }));
     };
 
-    newSocket.onmessage=(message)=>{
-      const data=JSON.parse(message.data);
-    console.log(data, "Data")
-      setMessages((prev)=>[...prev, data.data])
+    newSocket.onmessage = (message) => {
+      const data = JSON.parse(message.data);
+      if (data.type === "message") {
+        console.log(data, "Data");
+        setMessages((prev) => [...prev, data.data]);
+      }
 
-      // console.log("Message", data);  
-    }
-
+      if (data.type === "typing") {
+        console.log(data, "Typing");
+        setTyping(` ${data.data.name} is typing...`);
+      }
+      if (data.type === "stop_typing") {
+        console.log(data, "Stop Typing");
+        setTyping("");
+      }
+    };
 
     newSocket.onerror = (error) => {
-      
       console.log("Error", error);
     };
 
@@ -54,10 +74,9 @@ const {name, userId}=useUserStore(state=>({name:state.name, userId:state.userId}
     };
   }, [chatId]);
 
-
-  useEffect(()=>{
-bottomRef?.current?.scrollIntoView({behavior:"smooth"})
-  },[messages])
+  useEffect(() => {
+    bottomRef?.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const sendMessage = async (e: React.FormEvent) => {
     // send message to the server...
@@ -79,6 +98,7 @@ bottomRef?.current?.scrollIntoView({behavior:"smooth"})
         }
       );
       if (data.success && socket) {
+        if(socket.readyState===WebSocket.OPEN)
         setMessage("");
         socket.send(
           JSON.stringify({
@@ -86,10 +106,10 @@ bottomRef?.current?.scrollIntoView({behavior:"smooth"})
             data: {
               message,
               chatId,
-              sender:{
-                id:userId,
-                name:name
-              }
+              sender: {
+                id: userId,
+                name: name,
+              },
             },
           })
         );
@@ -101,21 +121,6 @@ bottomRef?.current?.scrollIntoView({behavior:"smooth"})
       setSending(false);
     }
   };
-
-  const handleTyping=()=>{
-    if(!chatId || !validateUUID.test(chatId) || !socket) return;
-    socket.send(JSON.stringify({
-      type:"typing",
-      data:{
-        chatId,
-        sender:{
-          id:userId,
-          name:name
-        }
-      }
-    }))
-
-  }
 
   return (
     <div className="flex flex-col gap-2  h-screen">
@@ -154,26 +159,26 @@ bottomRef?.current?.scrollIntoView({behavior:"smooth"})
           </div>
         )}
         <div ref={bottomRef}></div>
-
       </div>
+      <div className="sticky w-full p-5 bottom-0 flex flex-col gap-2">
+        <div className="flex  gap-2 items-center">
+          <form onSubmit={sendMessage} className="flex gap-2 w-full">
+            <TypingInput
+              validateUUID={validateUUID}
+              chatId={chatId}
+              socket={socket}
+              message={message}
+              setMessage={setMessage}
+            />
+            {chatId && validateUUID.test(chatId) && (
+              <Button type="submit" disabled={sending || !message}>
+                {sending ? "...." : "Send"}
+              </Button>
+            )}
+          </form>
+        </div>
 
-      <div className="flex sticky w-full p-5 bottom-0 gap-2 items-center">
-        <form onSubmit={sendMessage} className="flex gap-2 w-full">
-          <Input
-            value={message}
-            className="flex-1"
-            onKeyUp={handleTyping}
-            onChange={(e) => setMessage(e.target.value)}
-            disabled={!chatId || !validateUUID.test(chatId)}
-            placeholder="Type a message"
-          />
-          {chatId && validateUUID.test(chatId) && (
-            <Button type="submit" disabled={sending || !message}>
-              {sending ? "...." : "Send"}
-            </Button>
-          )}
-        </form>
-
+        {typing && <p className="text-gray-500">{typing}</p>}
       </div>
     </div>
   );
