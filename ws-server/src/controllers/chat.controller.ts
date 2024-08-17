@@ -37,7 +37,7 @@ export async function createChat(req: Request, res: Response) {
     });
 
     if (findChat) {
-        return res.status(400).json({ message: "Chat already exists", success: false });
+        return res.status(200).json({ message: "Chat already exists", success: true, chat: findChat });
     }
 
 

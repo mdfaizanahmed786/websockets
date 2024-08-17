@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import Messages from "./Messages";
@@ -10,12 +10,14 @@ import { useWSStore } from "../../store/wsStore";
 import { useUserStore } from "../../store/userStore";
 
 function ChatMessages({ messages, setMessages }: { messages: Message[], setMessages: React.Dispatch<React.SetStateAction<Message[]>> }) {
-  // all logic will happen here.....
-console.log(messages[0])
   const chatId = useChatStore((state) => state.chatId);
   const [message, setMessage] = useState("");
   const chatName = useChatStore((state) => state.chatName);
   const [sending, setSending] = useState(false); 
+  const [typing,  setTyping]=useState(false)
+
+  const bottomRef=useRef<HTMLDivElement>(null)
+
 const {name, userId}=useUserStore(state=>({name:state.name, userId:state.userId}))
   const { socket, setSocket } = useWSStore((state) => {
     return {
@@ -41,6 +43,7 @@ const {name, userId}=useUserStore(state=>({name:state.name, userId:state.userId}
       // console.log("Message", data);  
     }
 
+
     newSocket.onerror = (error) => {
       
       console.log("Error", error);
@@ -50,6 +53,11 @@ const {name, userId}=useUserStore(state=>({name:state.name, userId:state.userId}
       newSocket.close();
     };
   }, [chatId]);
+
+
+  useEffect(()=>{
+bottomRef?.current?.scrollIntoView({behavior:"smooth"})
+  },[messages])
 
   const sendMessage = async (e: React.FormEvent) => {
     // send message to the server...
@@ -94,6 +102,21 @@ const {name, userId}=useUserStore(state=>({name:state.name, userId:state.userId}
     }
   };
 
+  const handleTyping=()=>{
+    if(!chatId || !validateUUID.test(chatId) || !socket) return;
+    socket.send(JSON.stringify({
+      type:"typing",
+      data:{
+        chatId,
+        sender:{
+          id:userId,
+          name:name
+        }
+      }
+    }))
+
+  }
+
   return (
     <div className="flex flex-col gap-2  h-screen">
       {chatId && (
@@ -130,6 +153,8 @@ const {name, userId}=useUserStore(state=>({name:state.name, userId:state.userId}
             ))}
           </div>
         )}
+        <div ref={bottomRef}></div>
+
       </div>
 
       <div className="flex sticky w-full p-5 bottom-0 gap-2 items-center">
@@ -137,6 +162,7 @@ const {name, userId}=useUserStore(state=>({name:state.name, userId:state.userId}
           <Input
             value={message}
             className="flex-1"
+            onKeyUp={handleTyping}
             onChange={(e) => setMessage(e.target.value)}
             disabled={!chatId || !validateUUID.test(chatId)}
             placeholder="Type a message"
@@ -147,6 +173,7 @@ const {name, userId}=useUserStore(state=>({name:state.name, userId:state.userId}
             </Button>
           )}
         </form>
+
       </div>
     </div>
   );

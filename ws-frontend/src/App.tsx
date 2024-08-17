@@ -1,8 +1,4 @@
-import {
-  Route,
-  Routes,
-  useNavigate,
-} from "react-router-dom";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import Login from "./components/Auth/Login";
 import Signup from "./components/Auth/Signup";
 import ChatContainer from "./components/Chat/ChatContainer";
@@ -11,12 +7,16 @@ import { useEffect } from "react";
 import axios from "axios";
 import { useUserStore } from "./store/userStore";
 function App() {
-  const navigate = useNavigate();
   const { setUserId, setUserName, setName } = useUserStore((state) => ({
     setUserId: state.setUserId,
     setUserName: state.setUserName,
-    setName:state.setName
+    setName: state.setName,
   }));
+
+  const protectedRoutes = ["/", "/chat/:chatId"];
+
+  const navigate = useNavigate();
+  const location = useLocation(); // Get the current location
 
   useEffect(() => {
     const getUserInfo = async () => {
@@ -31,19 +31,29 @@ function App() {
         if (!response.data.success) {
           toast.error(response.data.message);
 
+          if (protectedRoutes.includes(location.pathname)) {
+            setUserId("");
+            setUserName("");
+            setName("");
+            navigate("/login");
+            return;
+          }
+        } else {
+          setUserId(response.data.user.id);
+          setUserName(response.data.user.username);
+          setName(response.data.user.name);
+        }
+      } catch (error) {
+        if (protectedRoutes.includes(location.pathname)) {
+          toast.error(error.response?.data?.message || "An error occurred");
           navigate("/login");
         }
-        setUserId(response.data.user.id);
-        setUserName(response.data.user.username);
-        setName(response.data.user.name);
-        
-      } catch (error) {
-        toast.error(error.response.data.message);
-        navigate("/login");
       }
     };
+
     getUserInfo();
-  }, []);
+  }, [location.pathname, navigate]);
+
   return (
     <>
       <Toaster position="top-right" />
