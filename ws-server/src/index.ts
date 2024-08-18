@@ -47,6 +47,15 @@ wss.on("connection", (ws) => {
                 // Associate this WebSocket connection with the chatId
                 clients.set(ws, message.data.chatId);
                 console.log(`Client joined chat: ${message.data.chatId}`);
+                wss.clients.forEach((client: WebSocket) => {
+                    if (client !== ws && client.readyState === WebSocket.OPEN && clients.get(client) === message.data.chatId) {
+                        client.send(JSON.stringify({
+                            type: "online",
+
+                        }))
+                    }
+                })
+
             }
 
             if (message.type === "message") {
@@ -58,7 +67,7 @@ wss.on("connection", (ws) => {
                 const typingPayload = message.data;
                 console.log(typingPayload, "Typing payload..")
                 wss.clients.forEach((client: WebSocket) => {
-                    if (client!==ws && client.readyState === WebSocket.OPEN && clients.get(client) === typingPayload.chatId) {
+                    if (client !== ws && client.readyState === WebSocket.OPEN && clients.get(client) === typingPayload.chatId) {
                         client.send(JSON.stringify({
                             type: "typing",
                             data: {
@@ -69,10 +78,10 @@ wss.on("connection", (ws) => {
                 })
             }
 
-            if(message.type==="stop_typing"){
+            if (message.type === "stop_typing") {
                 const typingPayload = message.data;
                 wss.clients.forEach((client: WebSocket) => {
-                    if (client!==ws && client.readyState === WebSocket.OPEN && clients.get(client) === typingPayload.chatId) {
+                    if (client !== ws && client.readyState === WebSocket.OPEN && clients.get(client) === typingPayload.chatId) {
                         client.send(JSON.stringify({
                             type: "stop_typing",
                             data: {
@@ -82,6 +91,7 @@ wss.on("connection", (ws) => {
                     }
                 })
             }
+
 
 
 
@@ -96,6 +106,8 @@ wss.on("connection", (ws) => {
 
     ws.on("close", () => {
         clients.delete(ws)
+        console.log(`Client left`)
+
     })
 
     ws.on("error", () => {

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { User } from "./CreateChat";
 import { useUserStore } from "../../store/userStore";
+import { useWSStore } from "../../store/wsStore";
 export interface Message {
   id: string;
   message: string;
@@ -16,11 +17,64 @@ export const validateUUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 function ChatContainer() {
   const { chatId } = useParams();
-  const setChatId = useChatStore((state) => state.setChatId);
-  const setChatName = useChatStore((state) => state.setChatName);
+
+  const { setGroupChat, setChatId, setChatName } = useChatStore((state) => ({
+    setGroupChat: state.setGroupChat,
+    setChatId: state.setChatId,
+    setChatName: state.setChatName,
+  }));
+  const setSocket=useWSStore((state)=>state.setSocket)
   const userId = useUserStore((state) => state.userId);
 
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+
+  const [typing, setTyping]=useState('')
+  
+
+  
+  useEffect(() => {
+    if (!chatId) return;
+    const newSocket = new WebSocket("ws://localhost:5001");
+
+    newSocket.onopen = () => {
+      console.log("Connected to the server");
+      setSocket(newSocket);
+      
+    };
+
+    newSocket.onmessage = (message) => {
+      const data = JSON.parse(message.data);
+      if (data.type === "message") {
+        console.log(data, "Data");
+        setMessages((prev) => [...prev, data.data]);
+      }
+
+      if (data.type === "typing") {
+        console.log(data, "Typing");
+        setTyping(` ${data.data.name} is typing...`);
+      }
+      if (data.type === "stop_typing") {
+        console.log(data, "Stop Typing");
+        setTyping("");
+      }
+    };
+
+    newSocket.onerror = (error) => {
+      console.log("Error", error);
+    };
+
+    newSocket.onclose=()=>{
+      console.log("Disconnected from the server")
+    }
+
+    return () => {
+      newSocket.close();
+     
+    };
+  }, []);
+
+
+
 
   useEffect(() => {
     if (!chatId) {
@@ -41,6 +95,7 @@ function ChatContainer() {
           setMessages(response.data.chat.messages);
           if (response.data.chat.name && response.data.chat.isGroupChat) {
             setChatName(response.data.chat.name);
+            setGroupChat(true);
           } else {
             const user = response.data.chat.members.find(
               (user: User) => user.id !== userId
@@ -65,7 +120,7 @@ function ChatContainer() {
           <SideBar />
         </div>
         <div className="flex-[0.8] w-full h-full">
-          <ChatMessages messages={messages}  setMessages={setMessages} />
+          <ChatMessages typing={typing} messages={messages} />
         </div>
       </div>
     </div>

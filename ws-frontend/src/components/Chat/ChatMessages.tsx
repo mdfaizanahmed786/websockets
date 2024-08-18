@@ -11,16 +11,21 @@ import TypingInput from "./TypingInput";
 
 function ChatMessages({
   messages,
-  setMessages,
+  typing
+
 }: {
   messages: Message[];
-  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+  typing: string
+ 
 }) {
-  const chatId = useChatStore((state) => state.chatId);
+const {chatId, chatName, isGroupChat}=useChatStore((state)=>({
+  chatId: state.chatId,
+  chatName: state.chatName,
+  isGroupChat: state.isGroupChat
+}))
   const [message, setMessage] = useState("");
-  const chatName = useChatStore((state) => state.chatName);
   const [sending, setSending] = useState(false);
-  const [typing, setTyping] = useState("");
+
 
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -28,51 +33,17 @@ function ChatMessages({
     name: state.name,
     userId: state.userId,
   }));
-  const { socket, setSocket } = useWSStore((state) => {
-    return {
-      socket: state.socket,
-      setSocket: state.setSocket,
-    };
-  });
+  const socket = useWSStore((state) => state.socket);
 
-  useEffect(() => {
-    if (!chatId) return;
-    const newSocket = new WebSocket("ws://localhost:5001");
 
-    newSocket.onopen = () => {
-      console.log("Connected to the server");
-      setSocket(newSocket);
-      newSocket.send(JSON.stringify({
-        type: "join",
-        data: { chatId }
-      }));
-    };
+  useEffect(()=>{
+     if(!socket) return;
+     socket.send(JSON.stringify({
+      type: "join",
+      data: { chatId }
+    }));
+  },[chatId])
 
-    newSocket.onmessage = (message) => {
-      const data = JSON.parse(message.data);
-      if (data.type === "message") {
-        console.log(data, "Data");
-        setMessages((prev) => [...prev, data.data]);
-      }
-
-      if (data.type === "typing") {
-        console.log(data, "Typing");
-        setTyping(` ${data.data.name} is typing...`);
-      }
-      if (data.type === "stop_typing") {
-        console.log(data, "Stop Typing");
-        setTyping("");
-      }
-    };
-
-    newSocket.onerror = (error) => {
-      console.log("Error", error);
-    };
-
-    return () => {
-      newSocket.close();
-    };
-  }, [chatId]);
 
   useEffect(() => {
     bottomRef?.current?.scrollIntoView({ behavior: "smooth" });
@@ -129,6 +100,7 @@ function ChatMessages({
           <div className="flex items-center gap-2">
             <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
             <h1 className="text-xl font-semibold">{chatName}</h1>
+            {/* { && !isGroupChat && <p className="text-green-300">Online</p>} */}
           </div>
         </div>
       )}
