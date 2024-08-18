@@ -1,4 +1,4 @@
-import { Server, WebSocket } from "ws"
+import { WebSocket } from "ws"
 import { v4 as uuidv4, } from "uuid"
 
 type MessagePayload = {
@@ -32,10 +32,11 @@ export const formatMessage = (data: any) => {
 
 export const handleSend = (wss: any, clients: Map<any, any>, messagePayload: MessagePayload) => {
     wss.clients.forEach((client: WebSocket) => {
-        if (client.readyState === WebSocket.OPEN && clients.get(client) === messagePayload.chatId) {
+    
+        if (client.readyState === WebSocket.OPEN && clients.get(client).chatId === messagePayload.chatId) {
+
             client.send(JSON.stringify({
                 type: "message",
-
                 data: messagePayload
 
             }))

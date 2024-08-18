@@ -17,29 +17,46 @@ export const validateUUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 function ChatContainer() {
   const { chatId } = useParams();
+  const [onlineUsers, setOnlineUsers] = useState([]); 
 
   const { setGroupChat, setChatId, setChatName } = useChatStore((state) => ({
     setGroupChat: state.setGroupChat,
     setChatId: state.setChatId,
     setChatName: state.setChatName,
   }));
-  const setSocket=useWSStore((state)=>state.setSocket)
-  const userId = useUserStore((state) => state.userId);
+
+  const [onlineDetails, setOnlineDetails]=useState()
+  const { socket, setSocket } = useWSStore((state) => ({
+    setSocket: state.setSocket,
+    socket: state.socket,
+  }));
+  const { userId, name, userName } = useUserStore((state) => ({
+    userId: state.userId,
+    name: state.name,
+    userName: state.userName,
+  }));
 
   const [messages, setMessages] = useState<Message[]>([]);
 
-  const [typing, setTyping]=useState('')
-  
+  const [typing, setTyping] = useState("");
 
-  
+  const [onlineName, setOnlineName] = useState("");
+
   useEffect(() => {
-
     const newSocket = new WebSocket("ws://localhost:5001");
 
     newSocket.onopen = () => {
       console.log("Connected to the server");
       setSocket(newSocket);
-      
+
+      newSocket.send(
+        JSON.stringify({
+          type: "online_status",
+          data: {
+            userId,
+          },
+        })
+      );
     };
 
     newSocket.onmessage = (message) => {
@@ -47,6 +64,11 @@ function ChatContainer() {
       if (data.type === "message") {
         console.log(data, "Data");
         setMessages((prev) => [...prev, data.data]);
+      }
+
+      if (data.type === "join") {
+        console.log(data, "Join");
+        setOnlineUsers(data.data.onlineUsers);
       }
 
       if (data.type === "typing") {
@@ -63,18 +85,24 @@ function ChatContainer() {
       console.log("Error", error);
     };
 
-    newSocket.onclose=()=>{
-      console.log("Disconnected from the server")
-    }
+    newSocket.onclose = () => {
+      console.log("Disconnected from the server");
+      setOnlineName("");
+    };
 
     return () => {
       newSocket.close();
-     
     };
-  }, []);
+  }, [userId]);
 
-
-
+  useEffect(()=>{
+    const chatInfo = onlineUsers.find((user) => user.userId !== userId);
+    console.log(chatInfo, "HELLO")
+    if(chatInfo){
+     
+      setOnlineDetails(chatInfo);
+    }
+  },[onlineUsers.length])
 
   useEffect(() => {
     if (!chatId) {
@@ -92,6 +120,20 @@ function ChatContainer() {
 
         if (response.data.success) {
           setChatId(chatId);
+          if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.send(
+              JSON.stringify({
+                type: "join",
+                data: {
+                  chatId,
+                  userId,
+                  isGroupChat: response.data.chat.isGroupChat,
+                  name,
+                  userName
+                },
+              })
+            );
+          }
           setMessages(response.data.chat.messages);
           if (response.data.chat.name && response.data.chat.isGroupChat) {
             setChatName(response.data.chat.name);
@@ -111,6 +153,7 @@ function ChatContainer() {
 
     getChat();
   }, [chatId, userId]);
+
   // The chatId will go to global state manager....
 
   return (
@@ -120,7 +163,11 @@ function ChatContainer() {
           <SideBar />
         </div>
         <div className="flex-[0.8] w-full h-full">
-          <ChatMessages typing={typing} messages={messages} />
+          <ChatMessages
+            onlineDetails={onlineDetails}
+            typing={typing}
+            messages={messages}
+          />
         </div>
       </div>
     </div>

@@ -9,7 +9,7 @@ import userRouter from "./routes/user.route"
 import messageRouter from "./routes/message.route"
 import cookieParser from "cookie-parser"
 import { formatMessage, handleSend } from "./utils/handlers/sendMessage"
-import { setErrorMap } from "zod"
+
 
 const app = express()
 app.use(cors({
@@ -24,6 +24,7 @@ app.use(morgan('dev'))
 app.use("/api/v1/chat", chatRouter)
 app.use("/api/v1/user", userRouter)
 app.use("/api/v1/message", messageRouter)
+
 
 
 const clients = new Map();
@@ -43,10 +44,35 @@ wss.on("connection", (ws) => {
         const message = JSON.parse(data.toString());
         try {
 
+
+            if (message.type === "online_status") {
+                clients.set(ws, { chatId: null, userId: message.data.userId })
+                console.log(`Client with userId: ${message.data.userId} is online`)
+            }
+
             if (message.type === "join") {
                 // Associate this WebSocket connection with the chatId
-                clients.set(ws, message.data.chatId);
+                const { userId, chatId, isGroupChat, userName } = message.data
+                const clientInfo = clients.get(ws)
+                clients.set(ws, { ...clientInfo, chatId: message.data.chatId, userId, userName });
+                const onlineUsers = Array.from(clients.values()).filter(client => client.chatId === message.data.chatId)
+                console.log(onlineUsers, "Online users")
                 console.log(`Client joined chat: ${message.data.chatId}`);
+                wss.clients.forEach((client: WebSocket) => {
+                    if (client.readyState === WebSocket.OPEN && clients.get(client).chatId === chatId) {
+                        console.log("Sending online users..")
+                        client.send(JSON.stringify({
+                            type: "join",
+                            data: {
+                                chatId: message.data.chatId,
+                                onlineUsers,
+                                name: message.data.name,
+                                isGroupChat
+                            }
+                        }))
+                    }
+                }
+                )
 
             }
 
@@ -59,7 +85,7 @@ wss.on("connection", (ws) => {
                 const typingPayload = message.data;
                 console.log(typingPayload, "Typing payload..")
                 wss.clients.forEach((client: WebSocket) => {
-                    if (client !== ws && client.readyState === WebSocket.OPEN && clients.get(client) === typingPayload.chatId) {
+                    if (client !== ws && client.readyState === WebSocket.OPEN && clients.get(client).chatId === typingPayload.chatId) {
                         client.send(JSON.stringify({
                             type: "typing",
                             data: {
@@ -73,7 +99,7 @@ wss.on("connection", (ws) => {
             if (message.type === "stop_typing") {
                 const typingPayload = message.data;
                 wss.clients.forEach((client: WebSocket) => {
-                    if (client !== ws && client.readyState === WebSocket.OPEN && clients.get(client) === typingPayload.chatId) {
+                    if (client !== ws && client.readyState === WebSocket.OPEN && clients.get(client).chatId === typingPayload.chatId) {
                         client.send(JSON.stringify({
                             type: "stop_typing",
                             data: {

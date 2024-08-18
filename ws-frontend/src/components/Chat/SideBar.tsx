@@ -25,10 +25,11 @@ type Chat = {
 
 function SideBar() {
   const navigate = useNavigate();
-  const {setUserId, userId} = useUserStore((state) => {
+  const {setUserId, userId, name} = useUserStore((state) => {
     return {
       setUserId: state.setUserId,
       userId: state.userId,
+      name: state.name,
     };
   });
 
@@ -105,6 +106,10 @@ function SideBar() {
           })}
 
           {/* Repeat <Chats /> as needed */}
+        </div>
+
+        <div className="text-center p-3">
+          Hi, <span className="font-semibold">{name}</span>
         </div>
 
         <div className="bg-white">

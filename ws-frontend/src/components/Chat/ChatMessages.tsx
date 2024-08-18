@@ -11,17 +11,20 @@ import TypingInput from "./TypingInput";
 
 function ChatMessages({
   messages,
-  typing
+  typing,
+
+  onlineDetails
 
 }: {
   messages: Message[];
   typing: string
- 
+  onlineDetails:any
+
 }) {
-const {chatId, chatName, isGroupChat}=useChatStore((state)=>({
-  chatId: state.chatId,
+const {chatId,chatName}=useChatStore((state)=>({
   chatName: state.chatName,
-  isGroupChat: state.isGroupChat
+  isGroupChat: state.isGroupChat,
+  chatId: state.chatId
 }))
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
@@ -29,21 +32,15 @@ const {chatId, chatName, isGroupChat}=useChatStore((state)=>({
 
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const { name, userId } = useUserStore((state) => ({
+
+  const { name, userId, userName } = useUserStore((state) => ({
     name: state.name,
     userId: state.userId,
+    userName: state.userName,
   }));
+
+  console.log(userName, onlineDetails, "User name, online name")
   const socket = useWSStore((state) => state.socket);
-
-
-  useEffect(()=>{
-     if(!socket || !chatId) return;
-     socket.send(JSON.stringify({
-      type: "join",
-      data: { chatId }
-    }));
-  },[chatId])
-
 
   useEffect(() => {
     bottomRef?.current?.scrollIntoView({ behavior: "smooth" });
@@ -100,7 +97,7 @@ const {chatId, chatName, isGroupChat}=useChatStore((state)=>({
           <div className="flex items-center gap-2">
             <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
             <h1 className="text-xl font-semibold">{chatName}</h1>
-            {/* { && !isGroupChat && <p className="text-green-300">Online</p>} */}
+            {onlineDetails &&  userName!==onlineDetails.userName && onlineDetails.chatId===chatId && <p className="text-green-300">Online</p>}
           </div>
         </div>
       )}
