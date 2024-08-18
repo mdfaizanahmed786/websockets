@@ -47,14 +47,6 @@ wss.on("connection", (ws) => {
                 // Associate this WebSocket connection with the chatId
                 clients.set(ws, message.data.chatId);
                 console.log(`Client joined chat: ${message.data.chatId}`);
-                wss.clients.forEach((client: WebSocket) => {
-                    if (client !== ws && client.readyState === WebSocket.OPEN && clients.get(client) === message.data.chatId) {
-                        client.send(JSON.stringify({
-                            type: "online",
-
-                        }))
-                    }
-                })
 
             }
 

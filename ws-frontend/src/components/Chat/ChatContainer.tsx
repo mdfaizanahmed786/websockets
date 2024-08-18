@@ -33,7 +33,7 @@ function ChatContainer() {
 
   
   useEffect(() => {
-    if (!chatId) return;
+
     const newSocket = new WebSocket("ws://localhost:5001");
 
     newSocket.onopen = () => {

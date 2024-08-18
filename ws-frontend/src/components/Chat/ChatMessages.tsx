@@ -37,7 +37,7 @@ const {chatId, chatName, isGroupChat}=useChatStore((state)=>({
 
 
   useEffect(()=>{
-     if(!socket) return;
+     if(!socket || !chatId) return;
      socket.send(JSON.stringify({
       type: "join",
       data: { chatId }
