@@ -4,6 +4,7 @@ import prisma from "../utils/prisma";
 
 
 export async function sendMessage(req: Request, res: Response) {
+    console.log("I got hit.....")
     const validateMessage = chatMessageValidation.safeParse(req.body);
     if (!validateMessage.success) {
         return res.status(400).json({ message: validateMessage.error.errors, success: false });

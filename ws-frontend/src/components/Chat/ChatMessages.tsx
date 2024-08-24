@@ -12,19 +12,19 @@ import TypingInput from "./TypingInput";
 function ChatMessages({
   messages,
   typing,
-
-  onlineDetails
+  onlineUsers
 
 }: {
   messages: Message[];
   typing: string
-  onlineDetails:any
+  onlineUsers:string[]
 
 }) {
-const {chatId,chatName}=useChatStore((state)=>({
+const {chatId,chatName, isGroupChat, members}=useChatStore((state)=>({
   chatName: state.chatName,
   isGroupChat: state.isGroupChat,
-  chatId: state.chatId
+  chatId: state.chatId,
+  members: state.members  
 }))
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
@@ -39,7 +39,6 @@ const {chatId,chatName}=useChatStore((state)=>({
     userName: state.userName,
   }));
 
-  console.log(userName, onlineDetails, "User name, online name")
   const socket = useWSStore((state) => state.socket);
 
   useEffect(() => {
@@ -90,6 +89,10 @@ const {chatId,chatName}=useChatStore((state)=>({
     }
   };
 
+  // wrap this funciton in useMemo
+  const checkSenderId=members.length===2 ?members.find((member)=>member.id !== userId)?.id : null
+  const findOtherUserid=onlineUsers.find((user)=>user  === checkSenderId)
+
   return (
     <div className="flex flex-col gap-2  h-screen">
       {chatId && (
@@ -97,7 +100,7 @@ const {chatId,chatName}=useChatStore((state)=>({
           <div className="flex items-center gap-2">
             <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
             <h1 className="text-xl font-semibold">{chatName}</h1>
-            {onlineDetails &&  userName!==onlineDetails.userName && onlineDetails.chatId===chatId && <p className="text-green-300">Online</p>}
+            {chatId && findOtherUserid && <p className="text-green-300">Online</p>}
           </div>
         </div>
       )}

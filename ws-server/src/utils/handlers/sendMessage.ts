@@ -31,8 +31,9 @@ export const formatMessage = (data: any) => {
 
 
 export const handleSend = (wss: any, clients: Map<any, any>, messagePayload: MessagePayload) => {
+    console.log(messagePayload, "Message   payload")    
     wss.clients.forEach((client: WebSocket) => {
-    
+         console.log(clients.get(client).chatId, messagePayload.chatId, "Chat id")  
         if (client.readyState === WebSocket.OPEN && clients.get(client).chatId === messagePayload.chatId) {
 
             client.send(JSON.stringify({

@@ -1,29 +1,40 @@
 import { create } from "zustand";
 
-type ChatState={
-    chatId: string
-    chatName: string,
-    isGroupChat:boolean
+type Members={
+    id:string
+    name:string
+    username:string
 }
 
-type ChatAction={
+type ChatState = {
+    chatId: string
+    chatName: string,
+    isGroupChat: boolean
+    members: Members[]
+}
+
+type ChatAction = {
     setChatId: (chatId: ChatState['chatId']) => void
     setChatName: (chatName: ChatState['chatName']) => void
-    setGroupChat: (isGroupChat:ChatState['isGroupChat']) =>void
+    setGroupChat: (isGroupChat: ChatState['isGroupChat']) => void
+    setMembers: (members: ChatState['members']) => void
 }
+
 
 const initialChatState = {
     chatId: '',
     chatName: '',
-    isGroupChat:false,
+    members: [],
+    isGroupChat: false,
 }
 
 
 export const useChatStore = create<ChatState & ChatAction>((set) => ({
     ...initialChatState,
     setChatId: (chatId: string) => set(() => ({ chatId })),
-   setChatName: (chatName: string) => set(() => ({ chatName })),
-   setGroupChat:(isGroupChat:boolean)=>set(()=> ({isGroupChat}))
+    setMembers: (members: Members[]) => set(() => ({ members })),
+    setChatName: (chatName: string) => set(() => ({ chatName })),
+    setGroupChat: (isGroupChat: boolean) => set(() => ({ isGroupChat }))
 
 }))
 

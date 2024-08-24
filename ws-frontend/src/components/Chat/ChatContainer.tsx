@@ -17,15 +17,16 @@ export const validateUUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 function ChatContainer() {
   const { chatId } = useParams();
-  const [onlineUsers, setOnlineUsers] = useState([]); 
 
-  const { setGroupChat, setChatId, setChatName } = useChatStore((state) => ({
+
+  const { setGroupChat, setChatId, setChatName, setMembers } = useChatStore((state) => ({
     setGroupChat: state.setGroupChat,
     setChatId: state.setChatId,
     setChatName: state.setChatName,
+    setMembers: state.setMembers,
   }));
+  const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
 
-  const [onlineDetails, setOnlineDetails]=useState()
   const { socket, setSocket } = useWSStore((state) => ({
     setSocket: state.setSocket,
     socket: state.socket,
@@ -40,7 +41,6 @@ function ChatContainer() {
 
   const [typing, setTyping] = useState("");
 
-  const [onlineName, setOnlineName] = useState("");
 
   useEffect(() => {
     const newSocket = new WebSocket("ws://localhost:5001");
@@ -66,14 +66,16 @@ function ChatContainer() {
         setMessages((prev) => [...prev, data.data]);
       }
 
-      if (data.type === "join") {
-        console.log(data, "Join");
-        setOnlineUsers(data.data.onlineUsers);
+
+      if(data.type==='online_status'){
+          console.log(data, "Online Status")   
+         setOnlineUsers(data.data)      
       }
 
       if (data.type === "typing") {
         console.log(data, "Typing");
         setTyping(` ${data.data.name} is typing...`);
+
       }
       if (data.type === "stop_typing") {
         console.log(data, "Stop Typing");
@@ -83,26 +85,22 @@ function ChatContainer() {
 
     newSocket.onerror = (error) => {
       console.log("Error", error);
+      setOnlineUsers([]);
     };
 
     newSocket.onclose = () => {
       console.log("Disconnected from the server");
-      setOnlineName("");
+      setOnlineUsers([]);
     };
+
 
     return () => {
       newSocket.close();
     };
   }, [userId]);
 
-  useEffect(()=>{
-    const chatInfo = onlineUsers.find((user) => user.userId !== userId);
-    console.log(chatInfo, "HELLO")
-    if(chatInfo){
-     
-      setOnlineDetails(chatInfo);
-    }
-  },[onlineUsers.length])
+
+
 
   useEffect(() => {
     if (!chatId) {
@@ -117,19 +115,17 @@ function ChatContainer() {
             withCredentials: true,
           }
         );
-
         if (response.data.success) {
           setChatId(chatId);
+          setMembers(response.data.chat.members);
           if (socket && socket.readyState === WebSocket.OPEN) {
+            console.log("joining chaatt..")
             socket.send(
               JSON.stringify({
                 type: "join",
                 data: {
                   chatId,
                   userId,
-                  isGroupChat: response.data.chat.isGroupChat,
-                  name,
-                  userName
                 },
               })
             );
@@ -164,7 +160,7 @@ function ChatContainer() {
         </div>
         <div className="flex-[0.8] w-full h-full">
           <ChatMessages
-            onlineDetails={onlineDetails}
+            onlineUsers={onlineUsers} 
             typing={typing}
             messages={messages}
           />

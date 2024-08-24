@@ -11,6 +11,7 @@ import cookieParser from "cookie-parser"
 import { formatMessage, handleSend } from "./utils/handlers/sendMessage"
 
 
+
 const app = express()
 app.use(cors({
     origin: "http://localhost:5173",
@@ -28,6 +29,7 @@ app.use("/api/v1/message", messageRouter)
 
 
 const clients = new Map();
+ 
 
 
 const server = app.listen(5001, () => {
@@ -38,52 +40,43 @@ const wss = new WebSocketServer({ server })
 
 wss.on("connection", (ws) => {
     console.log("connection done successfully..")
-
-
-    ws.on("message", (data) => {
+    ws.on("message", async (data) => {
+    
         const message = JSON.parse(data.toString());
         try {
-
-
             if (message.type === "online_status") {
                 clients.set(ws, { chatId: null, userId: message.data.userId })
                 console.log(`Client with userId: ${message.data.userId} is online`)
+                const onlineUsers = Array.from(clients.values()).map((client) => client.userId) 
+                    wss.clients.forEach((client: WebSocket) => {
+                        if (client.readyState === WebSocket.OPEN) {
+                            client.send(JSON.stringify({
+                                type: "online_status",
+                                data: onlineUsers
+                            }))
+                        }
+                    }
+                    )
             }
 
             if (message.type === "join") {
-                // Associate this WebSocket connection with the chatId
-                const { userId, chatId, isGroupChat, userName } = message.data
+                // Associate this WebSocket connection with the chatId  
+                const {userId, chatId}=message.data
+                console.log("---------------------", message.data)
+                console.log(userId, chatId, "Join")
                 const clientInfo = clients.get(ws)
-                clients.set(ws, { ...clientInfo, chatId: message.data.chatId, userId, userName });
-                const onlineUsers = Array.from(clients.values()).filter(client => client.chatId === message.data.chatId)
-                console.log(onlineUsers, "Online users")
+                clients.set(ws, { ...clientInfo, chatId, userId });  
                 console.log(`Client joined chat: ${message.data.chatId}`);
-                wss.clients.forEach((client: WebSocket) => {
-                    if (client.readyState === WebSocket.OPEN && clients.get(client).chatId === chatId) {
-                        console.log("Sending online users..")
-                        client.send(JSON.stringify({
-                            type: "join",
-                            data: {
-                                chatId: message.data.chatId,
-                                onlineUsers,
-                                name: message.data.name,
-                                isGroupChat
-                            }
-                        }))
-                    }
-                }
-                )
-
             }
 
             if (message.type === "message") {
+                console.log("Message received..")
                 const messagePayload = formatMessage(message.data)
                 handleSend(wss, clients, messagePayload)
             }
 
             if (message.type === "typing") {
                 const typingPayload = message.data;
-                console.log(typingPayload, "Typing payload..")
                 wss.clients.forEach((client: WebSocket) => {
                     if (client !== ws && client.readyState === WebSocket.OPEN && clients.get(client).chatId === typingPayload.chatId) {
                         client.send(JSON.stringify({
