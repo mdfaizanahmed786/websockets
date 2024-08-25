@@ -9,6 +9,7 @@ import userRouter from "./routes/user.route"
 import messageRouter from "./routes/message.route"
 import cookieParser from "cookie-parser"
 import { formatMessage, handleSend } from "./utils/handlers/sendMessage"
+import prisma from "./utils/prisma"
 
 
 
@@ -46,12 +47,32 @@ wss.on("connection", (ws) => {
             if (message.type === "online_status") {
                 clients.set(ws, { chatId: null, userId: message.data.userId })
                 console.log(`Client with userId: ${message.data.userId} is online`)
+
+                const chatsAssociatedWithUser =await prisma.chat.findMany({
+                    where:{
+                        members:{
+                            some:{
+                                id:message.data.userId  
+                            }
+                        },
+                        
+                   },
+                    select:{
+                        id:true,
+                        members:true
+                    }
+                })
+
                 const onlineUsers = Array.from(clients.values()).map((client) => client.userId)
+                const filterOnlineUsers=chatsAssociatedWithUser.map((chat)=>chat.members.map((member)=>member.id)).flat()   
+                const onlineUsersInChat=onlineUsers.filter((user)=>filterOnlineUsers.includes(user))
+
+
                 wss.clients.forEach((client: WebSocket) => {
                     if (client.readyState === WebSocket.OPEN) {
                         client.send(JSON.stringify({
                             type: "online_status",
-                            data: onlineUsers
+                            data: onlineUsersInChat
                         }))
                     }
                 }
