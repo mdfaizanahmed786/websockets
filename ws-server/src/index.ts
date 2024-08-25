@@ -29,7 +29,7 @@ app.use("/api/v1/message", messageRouter)
 
 
 const clients = new Map();
- 
+
 
 
 const server = app.listen(5001, () => {
@@ -41,31 +41,27 @@ const wss = new WebSocketServer({ server })
 wss.on("connection", (ws) => {
     console.log("connection done successfully..")
     ws.on("message", async (data) => {
-    
         const message = JSON.parse(data.toString());
         try {
             if (message.type === "online_status") {
                 clients.set(ws, { chatId: null, userId: message.data.userId })
                 console.log(`Client with userId: ${message.data.userId} is online`)
-                const onlineUsers = Array.from(clients.values()).map((client) => client.userId) 
-                    wss.clients.forEach((client: WebSocket) => {
-                        if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({
-                                type: "online_status",
-                                data: onlineUsers
-                            }))
-                        }
+                const onlineUsers = Array.from(clients.values()).map((client) => client.userId)
+                wss.clients.forEach((client: WebSocket) => {
+                    if (client.readyState === WebSocket.OPEN) {
+                        client.send(JSON.stringify({
+                            type: "online_status",
+                            data: onlineUsers
+                        }))
                     }
-                    )
+                }
+                )
             }
 
             if (message.type === "join") {
-                // Associate this WebSocket connection with the chatId  
-                const {userId, chatId}=message.data
-                console.log("---------------------", message.data)
-                console.log(userId, chatId, "Join")
+                const { userId, chatId } = message.data
                 const clientInfo = clients.get(ws)
-                clients.set(ws, { ...clientInfo, chatId, userId });  
+                clients.set(ws, { ...clientInfo, chatId, userId });
                 console.log(`Client joined chat: ${message.data.chatId}`);
             }
 
@@ -102,21 +98,24 @@ wss.on("connection", (ws) => {
                     }
                 })
             }
-
-
-
-
         } catch (error) {
 
             console.log(error)
 
         }
-
-
     })
 
     ws.on("close", () => {
         clients.delete(ws)
+        wss.clients.forEach((client: WebSocket) => {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify({
+                    type: "online_status",
+                    data: Array.from(clients.values()).map((client) => client.userId)
+                }))
+            }
+        }
+        )
         console.log(`Client left`)
 
     })

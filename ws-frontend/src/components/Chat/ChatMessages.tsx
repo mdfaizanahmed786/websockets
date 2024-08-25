@@ -20,7 +20,7 @@ function ChatMessages({
   onlineUsers:string[]
 
 }) {
-const {chatId,chatName, isGroupChat, members}=useChatStore((state)=>({
+const {chatId,chatName, members}=useChatStore((state)=>({
   chatName: state.chatName,
   isGroupChat: state.isGroupChat,
   chatId: state.chatId,
@@ -33,7 +33,7 @@ const {chatId,chatName, isGroupChat, members}=useChatStore((state)=>({
   const bottomRef = useRef<HTMLDivElement>(null);
 
 
-  const { name, userId, userName } = useUserStore((state) => ({
+  const { name, userId } = useUserStore((state) => ({
     name: state.name,
     userId: state.userId,
     userName: state.userName,
@@ -82,7 +82,6 @@ const {chatId,chatName, isGroupChat, members}=useChatStore((state)=>({
         );
       }
     } catch (error) {
-      toast.error(error.response.data.message);
       console.log(error);
     } finally {
       setSending(false);

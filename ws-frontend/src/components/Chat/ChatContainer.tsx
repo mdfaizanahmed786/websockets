@@ -31,7 +31,7 @@ function ChatContainer() {
     setSocket: state.setSocket,
     socket: state.socket,
   }));
-  const { userId, name, userName } = useUserStore((state) => ({
+  const { userId } = useUserStore((state) => ({
     userId: state.userId,
     name: state.name,
     userName: state.userName,
@@ -103,7 +103,7 @@ function ChatContainer() {
 
 
   useEffect(() => {
-    if (!chatId) {
+    if (!chatId || !socket) {
       setChatId("");
       return;
     }
@@ -148,7 +148,7 @@ function ChatContainer() {
     };
 
     getChat();
-  }, [chatId, userId]);
+  }, [chatId]);
 
   // The chatId will go to global state manager....
 

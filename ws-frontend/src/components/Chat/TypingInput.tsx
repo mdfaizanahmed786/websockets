@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
-import { Input } from "../ui/input";
 import { useUserStore } from "../../store/userStore";
+import { Input } from "../ui/input";
 
 function TypingInput({
   chatId,
@@ -19,6 +19,7 @@ function TypingInput({
     userId: state.userId,
     name: state.name,
   }));
+
 
   const timeoutRef = useRef<NodeJS.Timeout>();
   const handleTyping = () => {
@@ -46,7 +47,7 @@ function TypingInput({
           },
         })
       );
-    }, 2000);
+    }, 1000);
   };
   return (
     <Input
