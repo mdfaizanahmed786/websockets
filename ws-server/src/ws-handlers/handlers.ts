@@ -2,7 +2,7 @@ import { formatMessage, handleSend } from "../utils/handlers/sendMessage";
 import prisma from "../utils/prisma";
 import wss from "../index"
 import WebSocket from "ws";
-import { BroadCastData, Chat, ClientType, DataPayload, Events, MessagePayload, TypingPayload } from "../types/typings";
+import { BroadCastData, Chat, ClientType, DataPayload, Events, JoinPayload, MessagePayload, OnlineStatusPayload, TypingPayload } from "../types/typings";
 
 const clients: ClientType = new Map();
 
@@ -31,7 +31,7 @@ export async function handleMessage(ws: WebSocket, message: DataPayload) {
 }
 
 
-async function handleOnlineStatus(ws: WebSocket, message: DataPayload) {
+async function handleOnlineStatus(ws: WebSocket, message: OnlineStatusPayload) {
     clients.set(ws, { chatId: null, userId: message.data.userId })
     console.log(`Client with userId: ${message.data.userId} is online`)
     const chatsAssociatedWithUser = await prisma.chat.findMany({
@@ -61,7 +61,7 @@ async function handleOnlineStatus(ws: WebSocket, message: DataPayload) {
     })
 }
 
-function handleChatJoin(ws: WebSocket, message: DataPayload) {
+function handleChatJoin(ws: WebSocket, message: JoinPayload) {
     const { userId, chatId } = message.data
     const clientInfo = clients.get(ws)
     clients.set(ws, { ...clientInfo, chatId, userId });

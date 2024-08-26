@@ -39,7 +39,7 @@ export type TypingPayload = {
 
 export type JoinPayload = {
     type: Events.JOIN,
-    data: Omit<Payload, name>
+    data: Omit<Payload, 'name'>
 }
 
 
@@ -53,7 +53,7 @@ export type MessagePayload = {
 
 export type OnlineStatusPayload = {
     type: Events.ONLINE,
-    data: Omit<Payload, chatId, name>
+    data: Omit<Payload, 'chatId' | 'name'>
 }
 
 
