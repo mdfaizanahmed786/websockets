@@ -2,37 +2,26 @@ import { formatMessage, handleSend } from "../utils/handlers/sendMessage";
 import prisma from "../utils/prisma";
 import wss from "../index"
 import WebSocket from "ws";
+import { BroadCastData, Chat, ClientType, DataPayload, Events, MessagePayload, TypingPayload } from "../types/typings";
 
-const clients = new Map();
-type Chat = {
-    id: string;
-    members: {
-        id: string;
-        name: string;
-        username: string;
-        password: string;
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
-    }[];
-}
+const clients: ClientType = new Map();
 
-export async function handleMessage(ws: WebSocket, message: any) {
+export async function handleMessage(ws: WebSocket, message: DataPayload) {
     const type = message.type
     switch (type) {
-        case "online_status":
+        case Events.ONLINE:
             await handleOnlineStatus(ws, message)
             break;
-        case "join":
+        case Events.JOIN:
             handleChatJoin(ws, message)
             break;
-        case "message":
+        case Events.MESSAGE:
             handleSendMessage(ws, message)
             break;
-        case "typing":
+        case Events.TYPING:
             handleTyping(ws, message)
             break;
-        case "stop_typing":
+        case Events.STOP_TYPING:
             handleStopTyping(ws, message)
             break;
         default:
@@ -42,7 +31,7 @@ export async function handleMessage(ws: WebSocket, message: any) {
 }
 
 
-async function handleOnlineStatus(ws: WebSocket, message: any) {
+async function handleOnlineStatus(ws: WebSocket, message: DataPayload) {
     clients.set(ws, { chatId: null, userId: message.data.userId })
     console.log(`Client with userId: ${message.data.userId} is online`)
     const chatsAssociatedWithUser = await prisma.chat.findMany({
@@ -52,11 +41,16 @@ async function handleOnlineStatus(ws: WebSocket, message: any) {
                     id: message.data.userId
                 }
             },
-
         },
         select: {
             id: true,
-            members: true
+            members: {
+                select: {
+                    id: true,
+                    name: true,
+                    username: true
+                }
+            }
         }
     })
     const onlineUsersInChat = filterOutOnlineUsers(chatsAssociatedWithUser)
@@ -67,20 +61,20 @@ async function handleOnlineStatus(ws: WebSocket, message: any) {
     })
 }
 
-function handleChatJoin(ws: WebSocket, message: any) {
+function handleChatJoin(ws: WebSocket, message: DataPayload) {
     const { userId, chatId } = message.data
     const clientInfo = clients.get(ws)
     clients.set(ws, { ...clientInfo, chatId, userId });
     console.log(`Client joined chat: ${message.data.chatId}`);
 }
 
-function handleSendMessage(ws: WebSocket, message: any) {
+function handleSendMessage(ws: WebSocket, message: MessagePayload) {
     console.log("Message received..")
     const messagePayload = formatMessage(message.data)
     handleSend(wss, clients, messagePayload)
 }
 
-function handleTyping(ws: WebSocket, message: any) {
+function handleTyping(ws: WebSocket, message: TypingPayload) {
     const typingPayload = message.data;
     broadCastToChatClients(ws, {
         type: "typing",
@@ -92,7 +86,7 @@ function handleTyping(ws: WebSocket, message: any) {
 
 }
 
-function handleStopTyping(ws: WebSocket, message: any) {
+function handleStopTyping(ws: WebSocket, message: TypingPayload) {
     const typingPayload = message.data;
     broadCastToAllClients({
         type: "stop_typing",
@@ -106,11 +100,11 @@ function handleStopTyping(ws: WebSocket, message: any) {
 function filterOutOnlineUsers(chatsAssociatedWithUser: Chat[]) {
     const onlineUsers = Array.from(clients.values()).map((client) => client.userId)
     const filterOnlineUsers = chatsAssociatedWithUser.map((chat) => chat.members.map((member) => member.id)).flat()
-    return onlineUsers.filter((user) => filterOnlineUsers.includes(user))
+    return onlineUsers.filter((user) => filterOnlineUsers.includes(user!))
 }
 
 
-function broadCastToAllClients(data: any) {
+function broadCastToAllClients(data: BroadCastData) {
     wss.clients.forEach((client: WebSocket) => {
         if (client.readyState === WebSocket.OPEN) {
             client.send(JSON.stringify({
@@ -123,10 +117,9 @@ function broadCastToAllClients(data: any) {
 }
 
 
-
-function broadCastToChatClients(ws: WebSocket, data: any) {
+function broadCastToChatClients(ws: WebSocket, data: BroadCastData) {
     wss.clients.forEach((client: WebSocket) => {
-        if (client !== ws && client.readyState === WebSocket.OPEN && clients.get(client).chatId === data.data.chatId) {
+        if (client !== ws && client.readyState === WebSocket.OPEN && clients.get(client)?.chatId === data.data.chatId) {
             client.send(JSON.stringify({
                 type: data.type,
                 data: data.data

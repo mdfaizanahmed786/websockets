@@ -119,7 +119,6 @@ function ChatContainer() {
           setChatId(chatId);
           setMembers(response.data.chat.members);
           if (socket && socket.readyState === WebSocket.OPEN) {
-            console.log("joining chaatt..")
             socket.send(
               JSON.stringify({
                 type: "join",

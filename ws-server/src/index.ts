@@ -9,11 +9,12 @@ import messageRouter from "./routes/message.route"
 import userRouter from "./routes/user.route"
 import { handleDisconnect, handleMessage } from "./ws-handlers/handlers"
 import rateLimit from "express-rate-limit"
+import { DataPayload, MessagePayload } from "./types/typings"
 require("dotenv").config()
 
 const app = express()
 const limiter = rateLimit({
-    windowMs: 5 * 60 * 1000,
+    windowMs: 5 * 60 * 1000, //5 min window...
     limit: 10,
     standardHeaders: true,
     legacyHeaders: false,
@@ -43,16 +44,13 @@ const wss = new WebSocketServer({ server })
 wss.on("connection", (ws) => {
     console.log("connection done successfully..")
     ws.on("message", async (data) => {
-        const message = JSON.parse(data.toString());
+        const message:DataPayload = JSON.parse(data.toString());
         try {
             handleMessage(ws, message)
-
         } catch (error) {
             console.log(error)
-
         }
     })
-
     ws.on("close", () => {
         handleDisconnect(ws)
     })
