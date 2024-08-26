@@ -4,19 +4,18 @@ import wss from "../index"
 import WebSocket from "ws";
 
 const clients = new Map();
-type Chat =
-    {
+type Chat = {
+    id: string;
+    members: {
         id: string;
-        members: {
-            id: string;
-            name: string;
-            username: string;
-            password: string;
-            isActive: boolean;
-            createdAt: Date;
-            updatedAt: Date;
-        }[];
-    }
+        name: string;
+        username: string;
+        password: string;
+        isActive: boolean;
+        createdAt: Date;
+        updatedAt: Date;
+    }[];
+}
 
 export async function handleMessage(ws: WebSocket, message: any) {
     const type = message.type

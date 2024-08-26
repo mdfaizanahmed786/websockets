@@ -8,15 +8,22 @@ import chatRouter from "./routes/chat.route"
 import messageRouter from "./routes/message.route"
 import userRouter from "./routes/user.route"
 import { handleDisconnect, handleMessage } from "./ws-handlers/handlers"
+import rateLimit from "express-rate-limit"
 require("dotenv").config()
 
-
-
 const app = express()
+const limiter = rateLimit({
+    windowMs: 5 * 60 * 1000,
+    limit: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+})
+
 app.use(cors({
     origin: "http://localhost:5173",
     credentials: true
 }))
+app.use(limiter)
 app.use(helmet())
 app.use(express.json())
 app.use(cookieParser())
@@ -38,10 +45,10 @@ wss.on("connection", (ws) => {
     ws.on("message", async (data) => {
         const message = JSON.parse(data.toString());
         try {
-         handleMessage(ws, message)
+            handleMessage(ws, message)
 
         } catch (error) {
-        console.log(error)
+            console.log(error)
 
         }
     })
