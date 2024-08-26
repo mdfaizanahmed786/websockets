@@ -49,8 +49,6 @@ export type MessagePayload = {
 }
 
 
-
-
 export type OnlineStatusPayload = {
     type: Events.ONLINE,
     data: Omit<Payload, 'chatId' | 'name'>
