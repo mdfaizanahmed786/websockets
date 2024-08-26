@@ -1,15 +1,14 @@
-import express from "express"
+import cookieParser from "cookie-parser"
 import cors from "cors"
+import express from "express"
 import helmet from "helmet"
 import morgan from "morgan"
-import { WebSocket, WebSocketServer } from "ws"
-require("dotenv").config()
+import { WebSocketServer } from "ws"
 import chatRouter from "./routes/chat.route"
-import userRouter from "./routes/user.route"
 import messageRouter from "./routes/message.route"
-import cookieParser from "cookie-parser"
-import { formatMessage, handleSend } from "./utils/handlers/sendMessage"
-import prisma from "./utils/prisma"
+import userRouter from "./routes/user.route"
+import { handleDisconnect, handleMessage } from "./ws-handlers/handlers"
+require("dotenv").config()
 
 
 
@@ -28,11 +27,6 @@ app.use("/api/v1/user", userRouter)
 app.use("/api/v1/message", messageRouter)
 
 
-
-const clients = new Map();
-
-
-
 const server = app.listen(5001, () => {
     console.log("Server is running on port 5001")
 })
@@ -44,101 +38,16 @@ wss.on("connection", (ws) => {
     ws.on("message", async (data) => {
         const message = JSON.parse(data.toString());
         try {
-            if (message.type === "online_status") {
-                clients.set(ws, { chatId: null, userId: message.data.userId })
-                console.log(`Client with userId: ${message.data.userId} is online`)
+         handleMessage(ws, message)
 
-                const chatsAssociatedWithUser =await prisma.chat.findMany({
-                    where:{
-                        members:{
-                            some:{
-                                id:message.data.userId  
-                            }
-                        },
-                        
-                   },
-                    select:{
-                        id:true,
-                        members:true
-                    }
-                })
-
-                const onlineUsers = Array.from(clients.values()).map((client) => client.userId)
-                const filterOnlineUsers=chatsAssociatedWithUser.map((chat)=>chat.members.map((member)=>member.id)).flat()   
-                const onlineUsersInChat=onlineUsers.filter((user)=>filterOnlineUsers.includes(user))
-
-
-                wss.clients.forEach((client: WebSocket) => {
-                    if (client.readyState === WebSocket.OPEN) {
-                        client.send(JSON.stringify({
-                            type: "online_status",
-                            data: onlineUsersInChat
-                        }))
-                    }
-                }
-                )
-            }
-
-            if (message.type === "join") {
-                const { userId, chatId } = message.data
-                const clientInfo = clients.get(ws)
-                clients.set(ws, { ...clientInfo, chatId, userId });
-                console.log(`Client joined chat: ${message.data.chatId}`);
-            }
-
-            if (message.type === "message") {
-                console.log("Message received..")
-                const messagePayload = formatMessage(message.data)
-                handleSend(wss, clients, messagePayload)
-            }
-
-            if (message.type === "typing") {
-                const typingPayload = message.data;
-                wss.clients.forEach((client: WebSocket) => {
-                    if (client !== ws && client.readyState === WebSocket.OPEN && clients.get(client).chatId === typingPayload.chatId) {
-                        client.send(JSON.stringify({
-                            type: "typing",
-                            data: {
-                                name: typingPayload.name
-                            }
-                        }))
-                    }
-                })
-            }
-
-            if (message.type === "stop_typing") {
-                const typingPayload = message.data;
-                wss.clients.forEach((client: WebSocket) => {
-                    if (client !== ws && client.readyState === WebSocket.OPEN && clients.get(client).chatId === typingPayload.chatId) {
-                        client.send(JSON.stringify({
-                            type: "stop_typing",
-                            data: {
-                                name: typingPayload.name
-                            }
-                        }))
-                    }
-                })
-            }
         } catch (error) {
-
-            console.log(error)
+        console.log(error)
 
         }
     })
 
     ws.on("close", () => {
-        clients.delete(ws)
-        wss.clients.forEach((client: WebSocket) => {
-            if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify({
-                    type: "online_status",
-                    data: Array.from(clients.values()).map((client) => client.userId)
-                }))
-            }
-        }
-        )
-        console.log(`Client left`)
-
+        handleDisconnect(ws)
     })
 
     ws.on("error", () => {
@@ -146,6 +55,5 @@ wss.on("connection", (ws) => {
     })
 })
 
-
-
+export default wss
 
