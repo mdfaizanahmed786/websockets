@@ -80,6 +80,15 @@ const {chatId,chatName, members}=useChatStore((state)=>({
             },
           })
         );
+
+        socket.send(JSON.stringify({
+          type:"unread_message",
+          data:{
+            chatId,
+            message,
+            userId
+          }
+        }) )
       }
     } catch (error) {
       console.log(error);

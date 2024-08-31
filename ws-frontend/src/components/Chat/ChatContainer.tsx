@@ -19,11 +19,12 @@ function ChatContainer() {
   const { chatId } = useParams();
 
 
-  const { setGroupChat, setChatId, setChatName, setMembers } = useChatStore((state) => ({
+  const { setGroupChat, setChatId, setChatName, setMembers, setUnReadMessage } = useChatStore((state) => ({
     setGroupChat: state.setGroupChat,
     setChatId: state.setChatId,
     setChatName: state.setChatName,
     setMembers: state.setMembers,
+    setUnReadMessage: state.setUnReadMessage,
   }));
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
 
@@ -80,6 +81,15 @@ function ChatContainer() {
       if (data.type === "stop_typing") {
         console.log(data, "Stop Typing");
         setTyping("");
+      }
+      if(data.type==='unread_message'){ 
+        console.log(data, "Unread Message")
+        setUnReadMessage(data.data)  
+      }
+
+      if(data.type==='clear_unread_message'){
+        console.log(data, "Clear Unread Message")
+        setUnReadMessage({chatId:data.data.chatId, messages:[]})
       }
     };
 
@@ -138,7 +148,7 @@ function ChatContainer() {
               (user: User) => user.id !== userId
             );
 
-            setChatName(user.name);
+            setChatName(user.name);    
           }
         }
       } catch (error) {

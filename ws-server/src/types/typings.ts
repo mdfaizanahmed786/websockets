@@ -13,7 +13,9 @@ export enum Events {
     JOIN = "join",
     MESSAGE = "message",
     TYPING = "typing",
-    STOP_TYPING = "stop_typing"
+    STOP_TYPING = "stop_typing",
+    UNREAD_MESSAGE="unread_message",
+    CLEAR_UNREAD_MESSAGE="clear_unread_message"
 }
 
 type Payload = {
@@ -49,6 +51,23 @@ export type MessagePayload = {
 }
 
 
+export type UnreadMessagePayload={
+    type:Events.UNREAD_MESSAGE
+    data:{
+       message:string,
+       chatId:string
+       userId:string
+    }
+}
+
+export type ClearUnreadMessagePayload={
+    type:Events.CLEAR_UNREAD_MESSAGE
+    data:{
+        chatId:string
+    }
+}
+
+
 export type OnlineStatusPayload = {
     type: Events.ONLINE,
     data: Omit<Payload, 'chatId' | 'name'>
@@ -57,8 +76,9 @@ export type OnlineStatusPayload = {
 
 export type ClientType=Map<WebSocket, { chatId: null | string, userId: null | string }>
 
+export type RecentMessages=Map<string,string[]>
 
-export type DataPayload = TypingPayload | JoinPayload | OnlineStatusPayload | MessagePayload
+export type DataPayload = TypingPayload | JoinPayload | OnlineStatusPayload | MessagePayload | UnreadMessagePayload | ClearUnreadMessagePayload
 
 
 export type BroadCastData={

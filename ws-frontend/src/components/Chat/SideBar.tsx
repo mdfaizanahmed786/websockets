@@ -33,7 +33,12 @@ function SideBar() {
     };
   });
 
-  const setChatId=useChatStore(state=>state.setChatId)  
+
+  const {setChatId} = useChatStore((state) => {
+    return {
+      setChatId: state.setChatId,
+    };
+  }); 
 
   const [allChats, setAllChats] = useState([]);
 
@@ -55,7 +60,8 @@ function SideBar() {
        navigate("/login");
       }
     } catch (error) {
-      toast.error(error.response.data.message);
+      console.log(error)
+      // toast.error(error.response.data.message);
     }
   };
 
@@ -100,6 +106,7 @@ function SideBar() {
                   createdAt={chat.createdAt}
                   id={chat.id}
                   key={chat.id}
+                
                 />
               </div>
             );
