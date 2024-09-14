@@ -43,9 +43,9 @@ function App() {
           setUserName(response.data.user.username);
           setName(response.data.user.name);
         }
-      } catch (error) {
+      } catch (err) {
         if (protectedRoutes.includes(location.pathname)) {
-          toast.error(error.response?.data?.message || "An error occurred");
+          toast.error("An error occurred");
           navigate("/login");
         }
       }
