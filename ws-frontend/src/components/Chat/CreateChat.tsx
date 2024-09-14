@@ -40,8 +40,9 @@ function CreateChat() {
       if (response.data.success) {
         setUsers(response.data.users);
       }
-    } catch (error: any) {
-      toast.error(error.response.data.message);
+    } catch (error) {
+      console.log(error)
+      // toast.error(error.response.data.message);
     }
   };
 
@@ -80,7 +81,7 @@ function CreateChat() {
       else{
         toast.error(response.data.message)
       }
-    } catch (error: any) {
+    } catch (error) {
       console.log(error)
       // toast.error(error.response.data.message);
     }

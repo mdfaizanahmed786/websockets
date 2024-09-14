@@ -44,7 +44,8 @@ export default function Signup() {
         
       } 
      
-      catch (error:any) {
+      catch (error) {
+        console.log(error)
         toast.error(error.response.data.message);
         setSubmitting(false);
       }

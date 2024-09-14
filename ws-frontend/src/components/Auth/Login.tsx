@@ -11,11 +11,9 @@ import { Input } from "../ui/input";
 import axios from "axios";
 import { Button } from "../ui/button";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 export default function Login() {
-  const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -43,8 +41,9 @@ export default function Login() {
 
         window.location.href = "/";
       }
-    } catch (error: any) {
-      toast.error(error.response.data.message);
+    } catch (error) {
+      console.log(error)
+      // toast.error(error.response.data.message);
       setSubmitting(false);
     }
   };
