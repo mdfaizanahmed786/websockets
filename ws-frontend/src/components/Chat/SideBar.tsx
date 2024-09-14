@@ -1,13 +1,13 @@
 import axios from "axios";
 import { Button } from "../ui/button";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Chat from "./Chat";
 import CreateChat from "./CreateChat";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { useUserStore } from "../../store/userStore";
 import { useChatStore } from "../../store/chatStore";
-import { MessageCircleMore } from "lucide-react";
+import { MessageCircleMore, X } from "lucide-react";
 
 type Member = {
   name: string;
@@ -23,7 +23,12 @@ type Chat = {
   id: string;
 };
 
-function SideBar() {
+
+type SideBarProps={
+  sideBarRef:React.RefObject<HTMLDivElement>
+}
+
+function SideBar({sideBarRef}:SideBarProps) {
   const navigate = useNavigate();
   const {setUserId, userId, name} = useUserStore((state) => {
     return {
@@ -77,15 +82,23 @@ function SideBar() {
 
     fetchChats();
   }, []);
+
+  const handleCloseNav=useCallback(()=>{
+    sideBarRef.current?.classList.add("hidden")
+  },[]);
   return (
     <div className="relative border-r-2 h-full border-gray-200 p-4">
       <div className="flex flex-col space-y-3 h-full">
+        <div className="flex justify-between">
         <div onClick={()=>window.location.href="/"} className="flex cursor-pointer items-center gap-2">
         <MessageCircleMore />
           <h1 className="text-2xl text-center font-semibold">Chat App</h1>
         </div>
+
+        <X onClick={handleCloseNav} className="md:hidden" />
+        </div>
         <div className="flex flex-col gap-2">
-          <CreateChat />
+          <CreateChat handleCloseNav={handleCloseNav} />
         </div>
 
         <div className="flex-1 flex flex-col gap-2 overflow-y-auto ">
@@ -97,6 +110,7 @@ function SideBar() {
             return (
               <div>
                 <Chat
+                  handleCloseNav={handleCloseNav}
                   chatName={chatName}
                   createdAt={chat.createdAt}
                   id={chat.id}

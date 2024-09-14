@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import ChatMessages from "./ChatMessages";
 import SideBar from "./SideBar";
 import { useChatStore } from "../../store/chatStore";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { User } from "./CreateChat";
 import { useUserStore } from "../../store/userStore";
@@ -100,6 +100,9 @@ function ChatContainer() {
   }, [userId]);
 
 
+  const sideBarRef=useRef<HTMLDivElement>(null) 
+
+
 
 
   useEffect(() => {
@@ -149,16 +152,15 @@ function ChatContainer() {
     getChat();
   }, [chatId]);
 
-  // The chatId will go to global state manager....
-
   return (
     <div>
       <div className="flex overflow-y-hidden">
-        <div className="h-screen sticky flex-[0.2] inset-0">
-          <SideBar />
+        <div ref={sideBarRef} className="h-screen transition-all flex-1 w-full md:sticky md:flex-[0.2] hidden absolute z-50 bg-white inset-0 md:block">
+          <SideBar sideBarRef={sideBarRef} />
         </div>
-        <div className="flex-[0.8] w-full h-full">
+        <div className="md:flex-[0.8] w-full h-full">
           <ChatMessages
+            sideBarRef={sideBarRef}
             onlineUsers={onlineUsers} 
             typing={typing}
             messages={messages}

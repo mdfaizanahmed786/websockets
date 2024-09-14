@@ -19,7 +19,10 @@ export type User = {
   name: string;
   username: string;
 };
-function CreateChat() {
+type CreateChatProps={
+  handleCloseNav:()=>void 
+}
+function CreateChat({handleCloseNav}:CreateChatProps) {
   const [users, setUsers] = useState([]);
   const [openGroupChatModal, setOpenGroupChatModal] = useState(false);  
   const [selectUser, setSelectUsers] = useState<string[]>([]);
@@ -76,6 +79,7 @@ function CreateChat() {
         setOpenGroupChatModal(false)
         setSingleChatModal(false)
         setSelectUsers([])  
+        handleCloseNav()
 
       }
       else{

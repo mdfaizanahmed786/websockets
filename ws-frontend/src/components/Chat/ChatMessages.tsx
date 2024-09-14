@@ -8,16 +8,19 @@ import axios from "axios";
 import { useWSStore } from "../../store/wsStore";
 import { useUserStore } from "../../store/userStore";
 import TypingInput from "./TypingInput";
+import { AlignJustify } from "lucide-react";
 
 function ChatMessages({
   messages,
   typing,
-  onlineUsers
+  onlineUsers,
+  sideBarRef,
 
 }: {
   messages: Message[];
   typing: string
   onlineUsers:string[]
+  sideBarRef:React.RefObject<HTMLDivElement>
 
 }) {
 const {chatId,chatName, members}=useChatStore((state)=>({
@@ -92,12 +95,18 @@ const {chatId,chatName, members}=useChatStore((state)=>({
   const checkSenderId=members.length===2 ?members.find((member)=>member.id !== userId)?.id : null
   const findOtherUserid=onlineUsers.find((user)=>user  === checkSenderId)
 
+
+  function handleOpenNav(){
+    sideBarRef.current?.classList.remove("hidden")
+  }
+
   return (
     <div className="flex flex-col gap-2  h-screen">
       {chatId && (
         <div className="flex sticky top-0 items-center p-3 justify-between border-b-2 border-b-gray-200">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+          <AlignJustify onClick={handleOpenNav} className="md:hidden" />
+            <div className="w-10 h-10 bg-gray-200 flex-grow-0 flex items-center justify-center rounded-full">{chatName[0].toUpperCase()}</div>
             <h1 className="text-xl font-semibold">{chatName}</h1>
             {chatId && findOtherUserid && <p className="text-green-300">Online</p>}
           </div>
@@ -119,6 +128,7 @@ const {chatId,chatName, members}=useChatStore((state)=>({
                 <p className="text-2xl text-gray-500 text-center">
                   Start a conversation with your friends
                 </p>
+                <Button className="md:hidden" onClick={handleOpenNav}>Get Started</Button>
               </>
             )}
           </div>
