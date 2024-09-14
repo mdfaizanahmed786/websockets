@@ -15,7 +15,6 @@ function ChatMessages({
   typing,
   onlineUsers,
   sideBarRef,
-
 }: {
   messages: Message[];
   typing: string
@@ -91,7 +90,6 @@ const {chatId,chatName, members}=useChatStore((state)=>({
     }
   };
 
-  // wrap this funciton in useMemo
   const checkSenderId=members.length===2 ?members.find((member)=>member.id !== userId)?.id : null
   const findOtherUserid=onlineUsers.find((user)=>user  === checkSenderId)
 
