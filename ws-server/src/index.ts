@@ -35,6 +35,11 @@ app.use("/api/v1/user", userRouter)
 app.use("/api/v1/message", messageRouter)
 
 
+app.get("/", (req, res) => {
+    res.send("Hello api")
+})
+
+
 const server = app.listen(5001 || process.env.PORT, () => {
     console.log("Server is running on port 5001")
 })
