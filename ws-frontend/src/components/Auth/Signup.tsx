@@ -13,6 +13,7 @@ import axios from "axios";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { Button } from "../ui/button";
+import { Link } from "react-router-dom";
 export default function Signup() {
   const [submitting, setSubmitting] = useState(false);
 
@@ -73,6 +74,12 @@ export default function Signup() {
                 placeholder="Enter a password"
                 required
               />
+               <p className="text-center">
+            Already have an account?{" "}
+            <Link to="/login" className="text-blue-500">
+              Login
+            </Link>
+          </p>
             </div>
           </CardContent>
           <CardFooter>

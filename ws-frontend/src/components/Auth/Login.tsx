@@ -12,6 +12,7 @@ import axios from "axios";
 import { Button } from "../ui/button";
 import toast from "react-hot-toast";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 export default function Login() {
   const [submitting, setSubmitting] = useState(false);
@@ -70,7 +71,14 @@ export default function Login() {
                 required
               />
             </div>
+          <p className="text-center">
+            Don't have an account?{" "}
+            <Link to="/signup" className="text-blue-500">
+              Sign up
+            </Link>
+          </p>
           </CardContent>
+
           <CardFooter>
             <Button disabled={submitting} type="submit" className="w-full">
               {submitting ? "Diving in..." : "Dive in"}
