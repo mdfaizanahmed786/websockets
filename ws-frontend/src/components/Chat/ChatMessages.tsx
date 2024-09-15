@@ -9,6 +9,8 @@ import { useWSStore } from "../../store/wsStore";
 import { useUserStore } from "../../store/userStore";
 import TypingInput from "./TypingInput";
 import { AlignJustify } from "lucide-react";
+import Attachment from "./Attachment";
+
 
 function ChatMessages({
   messages,
@@ -145,6 +147,7 @@ function ChatMessages({
       </div>
       <div className="sticky w-full p-5 bottom-0 flex flex-col gap-2">
         <div className="flex  gap-2 items-center">
+      {chatId && <Attachment/>}
           <form onSubmit={sendMessage} className="flex gap-2 w-full">
             <TypingInput
               validateUUID={validateUUID}
@@ -163,6 +166,11 @@ function ChatMessages({
 
         {typing && <p className="text-gray-500">{typing}</p>}
       </div>
+
+     
+
+
+
     </div>
   );
 }

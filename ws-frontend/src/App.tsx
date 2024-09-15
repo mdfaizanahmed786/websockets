@@ -16,7 +16,7 @@ function App() {
   const protectedRoutes = ["/", "/chat/:chatId"];
 
   const navigate = useNavigate();
-  const location = useLocation(); // Get the current location
+  const location = useLocation();
 
   useEffect(() => {
     const getUserInfo = async () => {

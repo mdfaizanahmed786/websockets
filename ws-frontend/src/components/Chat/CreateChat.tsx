@@ -101,7 +101,7 @@ function CreateChat({ handleCloseNav }: CreateChatProps) {
   );
 
   return (
-    <Dialog open={singleChat}>
+    <Dialog open={singleChat} onOpenChange={setSingleChatModal}>
       <DialogTrigger>
         <Button onClick={fetchUsers} className="w-full">
           Create Chat
