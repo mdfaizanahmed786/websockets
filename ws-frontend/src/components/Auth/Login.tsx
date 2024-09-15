@@ -25,7 +25,7 @@ export default function Login() {
     try {
       setSubmitting(true);
       const response = await axios.post(
-        "http://localhost:5001/api/v1/user/login",
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/user/login`,
         {
           username,
           password,
@@ -42,7 +42,7 @@ export default function Login() {
         window.location.href = "/";
       }
     } catch (error) {
-      console.log(error)
+      console.log(error);
       // toast.error(error.response.data.message);
       setSubmitting(false);
     }

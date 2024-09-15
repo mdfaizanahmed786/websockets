@@ -22,7 +22,7 @@ function App() {
     const getUserInfo = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:5001/api/v1/user/me",
+          `${import.meta.env.VITE_BACKEND_URL}/api/v1/user/me`,
           {
             withCredentials: true,
           }

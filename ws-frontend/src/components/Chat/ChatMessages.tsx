@@ -17,23 +17,20 @@ function ChatMessages({
   sideBarRef,
 }: {
   messages: Message[];
-  typing: string
-  onlineUsers:string[]
-  sideBarRef:React.RefObject<HTMLDivElement>
-
+  typing: string;
+  onlineUsers: string[];
+  sideBarRef: React.RefObject<HTMLDivElement>;
 }) {
-const {chatId,chatName, members}=useChatStore((state)=>({
-  chatName: state.chatName,
-  isGroupChat: state.isGroupChat,
-  chatId: state.chatId,
-  members: state.members  
-}))
+  const { chatId, chatName, members } = useChatStore((state) => ({
+    chatName: state.chatName,
+    isGroupChat: state.isGroupChat,
+    chatId: state.chatId,
+    members: state.members,
+  }));
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
 
-
   const bottomRef = useRef<HTMLDivElement>(null);
-
 
   const { name, userId } = useUserStore((state) => ({
     name: state.name,
@@ -57,7 +54,7 @@ const {chatId,chatName, members}=useChatStore((state)=>({
     try {
       setSending(true);
       const { data } = await axios.post(
-        `http://localhost:5001/api/v1/message/send`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/message/send`,
         {
           message,
           chatId,
@@ -67,8 +64,7 @@ const {chatId,chatName, members}=useChatStore((state)=>({
         }
       );
       if (data.success && socket) {
-        if(socket.readyState===WebSocket.OPEN)
-        setMessage("");
+        if (socket.readyState === WebSocket.OPEN) setMessage("");
         socket.send(
           JSON.stringify({
             type: "message",
@@ -90,12 +86,14 @@ const {chatId,chatName, members}=useChatStore((state)=>({
     }
   };
 
-  const checkSenderId=members.length===2 ?members.find((member)=>member.id !== userId)?.id : null
-  const findOtherUserid=onlineUsers.find((user)=>user  === checkSenderId)
+  const checkSenderId =
+    members.length === 2
+      ? members.find((member) => member.id !== userId)?.id
+      : null;
+  const findOtherUserid = onlineUsers.find((user) => user === checkSenderId);
 
-
-  function handleOpenNav(){
-    sideBarRef.current?.classList.remove("hidden")
+  function handleOpenNav() {
+    sideBarRef.current?.classList.remove("hidden");
   }
 
   return (
@@ -103,10 +101,14 @@ const {chatId,chatName, members}=useChatStore((state)=>({
       {chatId && (
         <div className="flex sticky top-0 items-center p-3 justify-between border-b-2 border-b-gray-200">
           <div className="flex items-center gap-2">
-          <AlignJustify onClick={handleOpenNav} className="md:hidden" />
-            <div className="w-10 h-10 bg-gray-200 flex-grow-0 flex items-center justify-center rounded-full">{chatName[0].toUpperCase()}</div>
+            <AlignJustify onClick={handleOpenNav} className="md:hidden" />
+            <div className="w-10 h-10 bg-gray-200 flex-grow-0 flex items-center justify-center rounded-full">
+              {chatName[0].toUpperCase()}
+            </div>
             <h1 className="text-xl font-semibold">{chatName}</h1>
-            {chatId && findOtherUserid && <p className="text-green-300">Online</p>}
+            {chatId && findOtherUserid && (
+              <p className="text-green-300">Online</p>
+            )}
           </div>
         </div>
       )}
@@ -126,7 +128,9 @@ const {chatId,chatName, members}=useChatStore((state)=>({
                 <p className="text-2xl text-gray-500 text-center">
                   Start a conversation with your friends
                 </p>
-                <Button className="md:hidden" onClick={handleOpenNav}>Get Started</Button>
+                <Button className="md:hidden" onClick={handleOpenNav}>
+                  Get Started
+                </Button>
               </>
             )}
           </div>

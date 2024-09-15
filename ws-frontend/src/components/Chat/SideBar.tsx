@@ -23,14 +23,13 @@ type Chat = {
   id: string;
 };
 
+type SideBarProps = {
+  sideBarRef: React.RefObject<HTMLDivElement>;
+};
 
-type SideBarProps={
-  sideBarRef:React.RefObject<HTMLDivElement>
-}
-
-function SideBar({sideBarRef}:SideBarProps) {
+function SideBar({ sideBarRef }: SideBarProps) {
   const navigate = useNavigate();
-  const {setUserId, userId, name} = useUserStore((state) => {
+  const { setUserId, userId, name } = useUserStore((state) => {
     return {
       setUserId: state.setUserId,
       userId: state.userId,
@@ -38,14 +37,14 @@ function SideBar({sideBarRef}:SideBarProps) {
     };
   });
 
-  const setChatId=useChatStore(state=>state.setChatId)  
+  const setChatId = useChatStore((state) => state.setChatId);
 
   const [allChats, setAllChats] = useState([]);
 
   const logout = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:5001/api/v1/user/logout",
+        "https://api.anxiousdev.online/api/v1/user/logout",
 
         {
           withCredentials: true,
@@ -54,13 +53,13 @@ function SideBar({sideBarRef}:SideBarProps) {
 
       if (response.data.success) {
         toast.success(response.data.message);
-         setUserId("");
-          setChatId("");
+        setUserId("");
+        setChatId("");
 
-       navigate("/login");
+        navigate("/login");
       }
     } catch (error) {
-      console.log(error)
+      console.log(error);
       // toast.error(error.response.data.message);
     }
   };
@@ -68,9 +67,12 @@ function SideBar({sideBarRef}:SideBarProps) {
   useEffect(() => {
     const fetchChats = async () => {
       try {
-        const response = await axios.get("http://localhost:5001/api/v1/chat", {
-          withCredentials: true,
-        });
+        const response = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/v1/chat`,
+          {
+            withCredentials: true,
+          }
+        );
 
         if (response.data.success) {
           setAllChats(response.data.chats);
@@ -83,19 +85,22 @@ function SideBar({sideBarRef}:SideBarProps) {
     fetchChats();
   }, []);
 
-  const handleCloseNav=useCallback(()=>{
-    sideBarRef.current?.classList.add("hidden")
-  },[]);
+  const handleCloseNav = useCallback(() => {
+    sideBarRef.current?.classList.add("hidden");
+  }, []);
   return (
     <div className="relative border-r-2 h-full border-gray-200 p-4">
       <div className="flex flex-col space-y-3 h-full">
         <div className="flex justify-between">
-        <div onClick={()=>window.location.href="/"} className="flex cursor-pointer items-center gap-2">
-        <MessageCircleMore />
-          <h1 className="text-2xl text-center font-semibold">Chat App</h1>
-        </div>
+          <div
+            onClick={() => (window.location.href = "/")}
+            className="flex cursor-pointer items-center gap-2"
+          >
+            <MessageCircleMore />
+            <h1 className="text-2xl text-center font-semibold">Chat App</h1>
+          </div>
 
-        <X onClick={handleCloseNav} className="md:hidden" />
+          <X onClick={handleCloseNav} className="md:hidden" />
         </div>
         <div className="flex flex-col gap-2">
           <CreateChat handleCloseNav={handleCloseNav} />

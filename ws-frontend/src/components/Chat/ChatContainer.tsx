@@ -18,13 +18,14 @@ export const validateUUID =
 function ChatContainer() {
   const { chatId } = useParams();
 
-
-  const { setGroupChat, setChatId, setChatName, setMembers } = useChatStore((state) => ({
-    setGroupChat: state.setGroupChat,
-    setChatId: state.setChatId,
-    setChatName: state.setChatName,
-    setMembers: state.setMembers,
-  }));
+  const { setGroupChat, setChatId, setChatName, setMembers } = useChatStore(
+    (state) => ({
+      setGroupChat: state.setGroupChat,
+      setChatId: state.setChatId,
+      setChatName: state.setChatName,
+      setMembers: state.setMembers,
+    })
+  );
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
 
   const { socket, setSocket } = useWSStore((state) => ({
@@ -41,9 +42,8 @@ function ChatContainer() {
 
   const [typing, setTyping] = useState("");
 
-
   useEffect(() => {
-    const newSocket = new WebSocket("ws://localhost:5001");
+    const newSocket = new WebSocket("ws://api.anxiousdev.online/");
 
     newSocket.onopen = () => {
       console.log("Connected to the server");
@@ -66,16 +66,14 @@ function ChatContainer() {
         setMessages((prev) => [...prev, data.data]);
       }
 
-
-      if(data.type==='online_status'){
-          console.log(data, "Online Status")   
-         setOnlineUsers(data.data)      
+      if (data.type === "online_status") {
+        console.log(data, "Online Status");
+        setOnlineUsers(data.data);
       }
 
       if (data.type === "typing") {
         console.log(data, "Typing");
         setTyping(` ${data.data.name} is typing...`);
-
       }
       if (data.type === "stop_typing") {
         console.log(data, "Stop Typing");
@@ -93,17 +91,12 @@ function ChatContainer() {
       setOnlineUsers([]);
     };
 
-
     return () => {
       newSocket.close();
     };
   }, [userId]);
 
-
-  const sideBarRef=useRef<HTMLDivElement>(null) 
-
-
-
+  const sideBarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!chatId || !socket) {
@@ -113,7 +106,7 @@ function ChatContainer() {
     const getChat = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:5001/api/v1/chat/${chatId}`,
+          `${import.meta.env.VITE_BACKEND_URL}/api/v1/chat/${chatId}`,
           {
             withCredentials: true,
           }
@@ -155,13 +148,16 @@ function ChatContainer() {
   return (
     <div>
       <div className="flex overflow-y-hidden">
-        <div ref={sideBarRef} className="h-screen transition-all flex-1 w-full md:sticky md:flex-[0.2] hidden absolute z-50 bg-white inset-0 md:block">
+        <div
+          ref={sideBarRef}
+          className="h-screen transition-all flex-1 w-full md:sticky md:flex-[0.2] hidden absolute z-50 bg-white inset-0 md:block"
+        >
           <SideBar sideBarRef={sideBarRef} />
         </div>
         <div className="md:flex-[0.8] w-full h-full">
           <ChatMessages
             sideBarRef={sideBarRef}
-            onlineUsers={onlineUsers} 
+            onlineUsers={onlineUsers}
             typing={typing}
             messages={messages}
           />
