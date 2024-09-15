@@ -43,8 +43,8 @@ function ChatContainer() {
   const [typing, setTyping] = useState("");
 
   useEffect(() => {
-    const newSocket = new WebSocket("ws://api.anxiousdev.online/");
-
+    const newSocket = new WebSocket(import.meta.env.VITE_WS_URL);
+// "wss://api.anxiousdev.online/"
     newSocket.onopen = () => {
       console.log("Connected to the server");
       setSocket(newSocket);
