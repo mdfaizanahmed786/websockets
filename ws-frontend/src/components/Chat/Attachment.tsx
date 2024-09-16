@@ -1,61 +1,114 @@
+import axios from "axios";
 import { Paperclip, X } from "lucide-react";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "../ui/dialog";
-import { Button } from "../ui/button";
-import { useDropzone } from "react-dropzone";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import toast from "react-hot-toast";
+import { useUpload } from "../../hooks/useUpload";
+import { useUserStore } from "../../store/userStore";
+import { useWSStore } from "../../store/wsStore";
+import { Button } from "../ui/button";
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "../ui/dialog";
 
-function Attachment() {
-  const [file, setFile] = useState<File | null>(null);
-  const [previewURL, setPreviewURL] = useState<null | string>(null);
+function Attachment({ chatId }: { chatId: string }) {
+const {getRootProps, getInputProps, isDragActive, file, previewURL, uploading, handleCheckFileType, setUploading, setPreviewURL, setFile}=useUpload();
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const uploadedFile = acceptedFiles[0];
-    setFile(uploadedFile);
-
-    const fileType = uploadedFile.type;
-    const fileSize = uploadedFile.size;
-    if (fileSize > 1024 * 1024 * 5) {
-      toast.error("File size should be less than 5MB");
-      return;
-    }
-    if (fileType.startsWith("image/") || fileType.startsWith("video/")) {
-      setPreviewURL(URL.createObjectURL(uploadedFile));
-    } else {
-      setPreviewURL(null);
-    }
-  }, []);
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    accept: {
-      "image/*": [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg"],
-      "video/*": [".mp4", ".mov", ".avi", ".mkv"],
-      "application/pdf": [".pdf"],
-      "application/msword": [".doc"],
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-        [".docx"],
-      "application/vnd.ms-excel": [".xls"],
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [
-        ".xlsx",
-      ],
-    },
-    onDrop,
-    multiple: false,
-  });
   const [open, setOpen] = useState(false);
   const handleOpen = () => {
     setFile(null);
     setOpen((prev) => !prev);
     setPreviewURL(null);
   };
+
+  const socket = useWSStore((state) => state.socket);
+  const {userId, name} = useUserStore((state) => ({
+    userId: state.userId,
+    name: state.name,
+  }));
+
+  const handleSendAttachment = async () => {
+    if (!file) {
+      toast.error("Please select a file to send");
+      return;
+    }
+  
+    try {
+      setUploading(true);
+  
+      // First, get the signed URL and upload the file
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/signed-url`,
+        {
+          key: file.name,
+          contentType: file.type,
+          chatId,
+        },
+        {
+          withCredentials: true,
+        }
+      );
+  
+      if (data.success) {
+        const { signedURL, fileLink } = data;
+  
+        await Promise.all([
+          axios.put(signedURL, file, {
+            headers: {
+              "Content-Type": file.type,
+            },
+          }),
+          axios.post(
+            `${import.meta.env.VITE_BACKEND_URL}/api/v1/message/send`,
+            {
+              message: file.name,
+              chatId,
+              media: fileLink,
+              messageType: handleCheckFileType(file).toUpperCase(),
+            },
+            {
+              withCredentials: true,
+            }
+          ),
+        ]);
+  
+        toast.success("File uploaded and message sent successfully");
+        if (socket && socket.readyState === WebSocket.OPEN) {
+          socket.send(
+            JSON.stringify({
+              type: "message",
+              data: {
+                message: file.name,
+                media:fileLink,
+                messageType: handleCheckFileType(file).toUpperCase(),
+                chatId,
+                sender: {
+                  id: userId,
+                  name: name,
+                },
+              },
+            })
+          );
+        }
+      } else {
+        toast.error("Failed to upload file");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("An error occurred while uploading or sending the message");
+    } finally {
+      setFile(null);
+      setOpen(false);
+      setUploading(false);
+    }
+  };
+  
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -153,15 +206,21 @@ function Attachment() {
               onClick={() => setFile(null)}
               type="button"
               variant="destructive"
+              disabled={uploading}
             >
               Cancel
             </Button>
           </DialogClose>
-            {file && (
-              <Button type="button" variant="default">
-                Send
-              </Button>
-            )}
+          {file && (
+            <Button
+              onClick={handleSendAttachment}
+              type="button"
+              variant="default"
+              disabled={uploading}
+            >
+              {uploading ? "Sending..." : "Send"}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -169,3 +228,6 @@ function Attachment() {
 }
 
 export default Attachment;
+
+
+

@@ -11,15 +11,19 @@ type MessagePayload = {
         id: string;
         name: string;
     };
+    media?: string
+    messageType?: string
 
 }
 
 export const formatMessage = (data: any) => {
-    console.log(data, "Data")
     const messagePayload = {
         id: uuidv4(),
         message: data.message,
         chatId: data.chatId,
+        media: data.media,
+        messageType: data.messageType,
+
         createdAt: new Date().toISOString(),
         sender: {
             id: data.sender.id,
@@ -31,9 +35,9 @@ export const formatMessage = (data: any) => {
 
 
 export const handleSend = (wss: any, clients: Map<any, any>, messagePayload: MessagePayload) => {
-    console.log(messagePayload, "Message   payload")    
+    console.log(messagePayload, "Message   payload")
     wss.clients.forEach((client: WebSocket) => {
-         console.log(clients.get(client).chatId, messagePayload.chatId, "Chat id")  
+        console.log(clients.get(client).chatId, messagePayload.chatId, "Chat id")
         if (client.readyState === WebSocket.OPEN && clients.get(client).chatId === messagePayload.chatId) {
 
             client.send(JSON.stringify({

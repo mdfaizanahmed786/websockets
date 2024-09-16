@@ -73,6 +73,8 @@ function ChatMessages({
             data: {
               message,
               chatId,
+              media: null,
+              messageType:"TEXT",
               sender: {
                 id: userId,
                 name: name,
@@ -147,7 +149,7 @@ function ChatMessages({
       </div>
       <div className="sticky w-full p-5 bottom-0 flex flex-col gap-2">
         <div className="flex  gap-2 items-center">
-      {chatId && <Attachment/>}
+      {chatId && <Attachment chatId={chatId}/>}
           <form onSubmit={sendMessage} className="flex gap-2 w-full">
             <TypingInput
               validateUUID={validateUUID}

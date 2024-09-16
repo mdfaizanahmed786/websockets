@@ -3,8 +3,9 @@ import { chatMessageValidation } from "../validation/chat.validation";
 import prisma from "../utils/prisma";
 
 
+
+
 export async function sendMessage(req: Request, res: Response) {
-    console.log("I got hit.....")
     const validateMessage = chatMessageValidation.safeParse(req.body);
     if (!validateMessage.success) {
         return res.status(400).json({ message: validateMessage.error.errors, success: false });
@@ -22,16 +23,16 @@ export async function sendMessage(req: Request, res: Response) {
         return res.status(404).json({ message: "Chat not found", success: false });
     }
     try {
-        const { message } = validateMessage.data;
-        // @ts-ignore
-        console.log(req.user, "User")
+        const { message, media, messageType} = validateMessage.data;
         // @ts-ignore
         const user = req.user;
         const newMessage = await prisma.message.create({
             data: {
                 message,
                 chatId,
-                senderId: user.id
+                senderId: user.id,
+                media,
+                messageType
             },
             select:{
                 id:true,

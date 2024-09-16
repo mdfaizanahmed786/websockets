@@ -44,7 +44,7 @@ function SideBar({ sideBarRef }: SideBarProps) {
   const logout = async () => {
     try {
       const response = await axios.get(
-        "https://api.anxiousdev.online/api/v1/user/logout",
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/user/logout`,
 
         {
           withCredentials: true,
@@ -55,6 +55,7 @@ function SideBar({ sideBarRef }: SideBarProps) {
         toast.success(response.data.message);
         setUserId("");
         setChatId("");
+
 
         navigate("/login");
       }

@@ -31,10 +31,10 @@ function CreateChat({ handleCloseNav }: CreateChatProps) {
   const [singleChat, setSingleChatModal] = useState(false);
 
   const fetchUsers = async () => {
-    setSingleChatModal(true);
+  setSingleChatModal(true);
     try {
       const response = await axios.get(
-        "https://api.anxiousdev.online/api/v1/user/all",
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/user/all`,
         {
           withCredentials: true,
         }

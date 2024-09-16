@@ -152,7 +152,9 @@ export async function getChatById(req: Request, res: Response) {
                         id: true,
                         message: true,
                         createdAt: true,
-                        sender: true
+                        sender: true,
+                        messageType: true,
+                        media: true
                     }
                 },
                 members: {

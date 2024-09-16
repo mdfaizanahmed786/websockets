@@ -6,11 +6,13 @@ import morgan from "morgan"
 import { WebSocketServer } from "ws"
 import chatRouter from "./routes/chat.route"
 import messageRouter from "./routes/message.route"
+import s3Router from "./routes/s3.route"
 import userRouter from "./routes/user.route"
 import { handleDisconnect, handleMessage } from "./ws-handlers/handlers"
 import rateLimit from "express-rate-limit"
 import { DataPayload } from "./types/typings"
 require("dotenv").config()
+
 
 const app = express()
 const limiter = rateLimit({
@@ -33,6 +35,7 @@ app.use(morgan('dev'))
 app.use("/api/v1/chat", chatRouter)
 app.use("/api/v1/user", userRouter)
 app.use("/api/v1/message", messageRouter)
+app.use("/api/v1/signed-url",  s3Router)
 
 
 app.get("/", (req, res) => {
